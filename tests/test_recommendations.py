@@ -1,7 +1,7 @@
 from conftest import call, sign_in
 
 from backend.data_infrastructure.database.connection import get_db
-from backend.data_infrastructure.indexes.recommendation_index import recommend
+from backend.data_infrastructure.indexes.recommendation_index import _tokens, recommend
 
 
 def item(pid, category=1):
@@ -27,6 +27,14 @@ def test_content_and_cold_start_fallback():
     results, mode = recommend(products, {}, {}, context_id=1)
     assert mode == 'fallback'
     assert [p['id'] for p in results] == [2, 3]
+
+
+def test_import_metadata_does_not_affect_content_features():
+    product = item(1)
+    product['attributes'] = {'source_id': '85359253', 'nguồn': 'https://example.test/abc', 'màu': 'xanh'}
+    tokens = _tokens(product)
+    assert 'mau' in tokens and 'xanh' in tokens
+    assert '85359253' not in tokens and 'https' not in tokens
 
 
 def test_recommendation_api_filters_unavailable_and_own_cart(app, client):

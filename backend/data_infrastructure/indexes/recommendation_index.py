@@ -20,6 +20,8 @@ def _tokens(product):
     tokens.update(words(product['brand']))
     tokens.update(words(product.get('description', '')))
     for key, value in product['attributes'].items():
+        if key in {'source_id', 'nguồn', 'cập nhật'}:
+            continue
         tokens.update(words(key))
         tokens.update(words(value))
     return tokens
