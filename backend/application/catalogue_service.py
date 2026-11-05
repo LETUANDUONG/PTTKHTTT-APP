@@ -26,18 +26,18 @@ def published_products():
 
 
 def detail(pid):
-    p = one('SELECT * FROM products WHERE id=? AND published=1', (pid,))
+    p = one('SELECT * FROM products WHERE id=%s AND published=1', (pid,))
     require(p, 'Sản phẩm không còn được bán.', 404)
-    return {**product(p), 'reviews': rows('SELECT r.id,r.rating,r.comment,r.created_at,u.name FROM reviews r JOIN users u ON u.id=r.user_id WHERE product_id=? ORDER BY r.id DESC', (pid,))}
+    return {**product(p), 'reviews': rows('SELECT r.id,r.rating,r.comment,r.created_at,u.name FROM reviews r JOIN users u ON u.id=r.user_id WHERE product_id=%s ORDER BY r.id DESC', (pid,))}
 
 
 def save_product(pid=None, *, data, user):
     d = data
-    old = one('SELECT * FROM products WHERE id=?', (pid,)) if pid else None
+    old = one('SELECT * FROM products WHERE id=%s', (pid,)) if pid else None
     require(not pid or old, 'Không tìm thấy sản phẩm.', 404)
     d = {**(product(old) if old else {}), **d}
     category = integer(d.get('category_id'), 'Danh mục')
-    require(one('SELECT id FROM categories WHERE id=?', (category,)), 'Danh mục không tồn tại.')
+    require(one('SELECT id FROM categories WHERE id=%s', (category,)), 'Danh mục không tồn tại.')
     attrs = d.get('attributes', {})
     require(isinstance(attrs, dict) and len(attrs) <= 20, 'Thông số cần là object tối đa 20 thuộc tính.')
     for k, v in attrs.items():
@@ -51,12 +51,12 @@ def save_product(pid=None, *, data, user):
     values = (category, text(d.get('name'), 'Tên sản phẩm', 2, 180), text(d.get('description'), 'Mô tả', 10, 3000), text(d.get('brand'), 'Thương hiệu', 1, 100), integer(d.get('price'), 'Giá', 1, 100000000), text(d.get('selling_unit'), 'Đơn vị bán', 1, 30), integer(d.get('pack_quantity'), 'Số lượng trong đơn vị', 1, 10000), json.dumps(attrs, ensure_ascii=False), image, boolean(published, 'Xuất bản'))
     db = get_db()
     if pid:
-        db.execute('UPDATE products SET category_id=?,name=?,description=?,brand=?,price=?,selling_unit=?,pack_quantity=?,attributes=?,image=?,published=? WHERE id=?', values + (pid,))
+        db.execute('UPDATE products SET category_id=%s,name=%s,description=%s,brand=%s,price=%s,selling_unit=%s,pack_quantity=%s,attributes=%s,image=%s,published=%s WHERE id=%s', values + (pid,))
     else:
-        pid = db.execute('INSERT INTO products(category_id,name,description,brand,price,selling_unit,pack_quantity,attributes,image,published) VALUES(?,?,?,?,?,?,?,?,?,?)', values).lastrowid
+        pid = db.execute('INSERT INTO products(category_id,name,description,brand,price,selling_unit,pack_quantity,attributes,image,published) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id', values).fetchone()['id']
     audit(user['id'], 'catalogue.save', pid)
     db.commit()
-    return product(one('SELECT * FROM products WHERE id=?', (pid,)))
+    return product(one('SELECT * FROM products WHERE id=%s', (pid,)))
 
 
 def create_product(*, data, user):
@@ -70,21 +70,21 @@ def edit_product(pid, *, data, user):
 def save_category(cid=None, *, data, user):
     d = data
     if cid:
-        require(one('SELECT id FROM categories WHERE id=?', (cid,)), 'Không có danh mục.', 404)
+        require(one('SELECT id FROM categories WHERE id=%s', (cid,)), 'Không có danh mục.', 404)
     name = text(d.get('name'), 'Danh mục', 2, 100)
     parent = d.get('parent_id')
     if parent is not None:
         integer(parent, 'Danh mục cha')
-        node = one('SELECT * FROM categories WHERE id=?', (parent,))
+        node = one('SELECT * FROM categories WHERE id=%s', (parent,))
         require(node, 'Danh mục cha không tồn tại.')
         while node:
             require(node['id'] != cid, 'Danh mục cha không được tạo vòng lặp.')
-            node = one('SELECT * FROM categories WHERE id=?', (node['parent_id'],))
+            node = one('SELECT * FROM categories WHERE id=%s', (node['parent_id'],))
     db = get_db()
     if cid:
-        db.execute('UPDATE categories SET name=?,parent_id=? WHERE id=?', (name, parent, cid))
+        db.execute('UPDATE categories SET name=%s,parent_id=%s WHERE id=%s', (name, parent, cid))
     else:
-        cid = db.execute('INSERT INTO categories(name,parent_id) VALUES(?,?)', (name, parent)).lastrowid
+        cid = db.execute('INSERT INTO categories(name,parent_id) VALUES(%s,%s) RETURNING id', (name, parent)).fetchone()['id']
     audit(user['id'], 'category.save', cid)
     db.commit()
-    return one('SELECT * FROM categories WHERE id=?', (cid,))
+    return one('SELECT * FROM categories WHERE id=%s', (cid,))

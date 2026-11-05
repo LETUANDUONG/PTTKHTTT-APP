@@ -34,7 +34,7 @@ def test_catalogue_validation_archive_category_cycle(app,client):
 
 def test_promotion_dates_minimum_and_bounds(client):
     call(client,'POST','/cart/items',{'product_id':3,'quantity':1})
-    q=call(client,'POST','/checkout/quote',{'promo':'MOSA10'}).json
+    q=call(client,'POST','/checkout/quote',{'promo':'HOODOO10'}).json
     assert q['discount']==8900 and q['total']==105100
     assert call(client,'POST','/checkout/quote',{'promo':'NOPE'}).status_code==409
     sign_in(client,'admin')
@@ -43,7 +43,7 @@ def test_promotion_dates_minimum_and_bounds(client):
     assert call(client,'POST','/checkout/quote',{'promo':'EXPIRED'}).status_code==409
     assert call(client,'POST','/staff/promotions',{**d,'code':'TOOBIG','percent':99}).status_code==400
     assert call(client,'PATCH','/staff/promotions/1',{'active':False}).status_code==200
-    assert call(client,'POST','/checkout/quote',{'promo':'MOSA10'}).status_code==409
+    assert call(client,'POST','/checkout/quote',{'promo':'HOODOO10'}).status_code==409
 
 
 def test_inventory_supply_and_role_privacy(app,client):
@@ -73,7 +73,7 @@ def test_fulfilment_dispatch_once_tracking_dedupe(app,client):
     assert call(staff,'POST',f'/staff/orders/{oid}/status',{'status':'shipped'}).status_code==409
     with app.app_context():
         p=get_db().execute('SELECT stock,reserved FROM products WHERE id=1').fetchone()
-        assert tuple(p)==(87,0)
+        assert (p['stock'],p['reserved'])==(87,0)
     assert call(staff,'POST',f'/staff/orders/{oid}/shipment',{'provider':'Nhập tay demo','tracking_code':'DEMO-001'}).status_code==200
     event={'event_id':'tracking-event-001','status':'delivered','message':'Đã giao demo'}
     r=call(staff,'POST',f'/staff/orders/{oid}/tracking',event)
@@ -92,4 +92,4 @@ def test_support_exception_audit(app,client):
     assert call(sales,'POST','/staff/exceptions',{'order_id':oid,'reason':'Thiếu thông tin','follow_up':'Gọi khách xác nhận'}).status_code==200
     assert sales.get('/api/staff/reports').status_code==403
     with app.app_context():
-        assert get_db().execute('SELECT COUNT(*) FROM audit').fetchone()[0]>=3
+        assert get_db().execute('SELECT COUNT(*) AS count FROM audit').fetchone()['count']>=3

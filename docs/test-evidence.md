@@ -1,4 +1,4 @@
-# Biên bản kiểm thử Mosa
+# Biên bản kiểm thử Hoodoo
 
 ## Môi trường
 Ngày 05/11/2026, Asia/Bangkok. Windows, Python 3.14.7, Flask 3.1.3, Pillow 12.3.0, pytest 9.2.0; Node 24.20.0, npm 11.19.0, React 19.3.1, Vite 7.3.7, Playwright 1.64.1. Bộ test browser dùng Edge có sẵn, headless, một worker. Không tạo commit; kết quả áp dụng cho working tree cuối của lượt triển khai này.
@@ -50,3 +50,26 @@ Desktop 1440×1000; mobile 390×664, deviceScaleFactor 3/touch. Mobile chạy Ed
 
 ## Giới hạn thực tế
 Không có bằng chứng cho payment/email/carrier/supplier thật, nhận dạng micro thật, AI semantic accuracy, Safari/Firefox/điện thoại vật lý, production capacity/uptime/TLS/at-rest encryption hoặc mục tiêu RPO/RTO. Image search chỉ baseline màu/bố cục; voice test kiểm tra wiring/fallback bằng stub. Refund/return ghi nhận yêu cầu để nhân viên xử lý, không tự hoàn tiền hoặc write-off stock. Các giới hạn này không được ghi thành Pass.
+
+
+## Bổ sung Faster Whisper và CLIP local — 05/11/2026
+
+Các kết quả SQLite/Web Speech/descriptor màu phía trên là lịch sử trước khi tích hợp AI; không đại diện cho bản mới.
+
+Thay đổi đang xác minh: Faster Whisper small đa ngôn ngữ, tiếng Việt, CPU int8; CLIP ViT-B/32 CPU, embedding chuẩn hóa/cosine, cache ảnh catalogue; model tải về models/ và inference offline. Voice dùng MediaRecorder, endpoint multipart CSRF, tối đa 5 MB/15 giây; tự dừng 8 giây, không lưu audio/query image.
+
+Kế hoạch kiểm thử bổ sung:
+
+- API voice: thiếu CSRF, thiếu audio, file hỏng, quá kích thước/thời lượng, quá ngắn, im lặng và tín hiệu không phải giọng nói qua Whisper/VAD thật.
+- CLIP: ảnh trùng, ảnh xoay/đổi sáng/nén JPEG, lọc category, cache, thiếu model trả 503, không sửa dữ liệu đơn/kho.
+- E2E desktop/mobile: lỗi quyền micro, bắt đầu/dừng, upload multipart, transcript mô phỏng để kiểm tra UI; tìm ảnh dùng CLIP thật.
+- Kiểm thử offline model và kiểm thử micro người dùng: ghi kết quả riêng, không suy ra từ mock.
+
+Kết quả đã xác minh:
+
+- Docker build thành công với PyTorch 2.9.1 CPU, torchvision 0.24.1, Faster Whisper 1.2.1, PyAV 16.0.1 và sentence-transformers 6.2.0.
+- Chạy container `--network none`: CLIP tạo vector 512 chiều chuẩn hóa từ ảnh catalogue; Faster Whisper small nhận dạng đúng mẫu speech tiếng Anh JFK công khai. Đây là kiểm tra inference offline, không chứng minh độ chính xác tiếng Việt.
+- PostgreSQL/Docker pytest: **36 passed trong 43,94 giây**, gồm kiểm thử voice validation/VAD, CLIP similarity, ảnh biến đổi, cache, filter và thiếu model. Kết quả ở `docs/pytest-results.xml`.
+- Lần thử ban đầu phát hiện PyAV 19 không tương thích với `metadata_errors` của Faster Whisper 1.2.1; khóa PyAV 16.0.1 và kiểm tra lại offline thành công.
+- Playwright và micro tiếng Việt: đang chờ kết quả; không suy ra thành công từ transcript mô phỏng.
+

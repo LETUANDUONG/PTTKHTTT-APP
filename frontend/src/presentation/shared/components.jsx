@@ -12,4 +12,4 @@ export function TaskForm({onSubmit,children,submit='Lưu thay đổi',className=
 }
 
 export function LoadingPage({error,reload}){return error?<div className="page"><ErrorBox error={error}/><button onClick={reload}>Thử lại</button></div>:<p className="loading">Đang tải…</p>;}
-export function LoginNeeded(){return <div className="page narrow"><h1>Đăng nhập để tiếp tục</h1><p>Xem tài khoản và đơn hàng của bạn tại Mosa.</p><Link className="primary" to="/login">Đăng nhập</Link></div>;}
+export function LoginNeeded(){return <div className="page narrow"><h1>Đăng nhập để tiếp tục</h1><p>Xem tài khoản và đơn hàng của bạn tại Hoodoo.</p><Link className="primary" to="/login">Đăng nhập</Link></div>;}

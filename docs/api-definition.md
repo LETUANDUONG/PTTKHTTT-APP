@@ -1,4 +1,4 @@
-# Mosa REST API
+# Hoodoo REST API
 
 ## 1. Contract chung
 Base /api, same-origin session HttpOnly SameSite=Lax. GET /session trả user, csrf_token, demo. Mọi write dùng X-CSRF-Token; không bật CORS. JSON object, errors {error, code}; 400 input, 401 chưa login, 403 role/CSRF, 404 record không accessible, 409 conflict, 413 upload, 429 throttled. Số tiền integer VND; time ISO UTC. Query không âm, enum allowlist, length bounds. Client không gửi trusted role, stock, payment success hay giá cuối.
@@ -61,6 +61,13 @@ Prefix /staff. GET /overview trả datasets theo role, không trả password/tok
 
 ## 5. Example
 ```json
-{"recipient":"Nguyễn An","phone":"0901234567","address":"12 Nguyễn Trãi, Hà Nội","payment_method":"demo","promo":"MOSA10","expected_subtotal":55000}
+{"recipient":"Nguyễn An","phone":"0901234567","address":"12 Nguyễn Trãi, Hà Nội","payment_method":"demo","promo":"HOODOO10","expected_subtotal":55000}
 ```
-Mã demo seed là MOSA10; mã không hợp lệ trả 409, không âm thầm bỏ qua. Quote không giữ tồn kho. Khi checkout response mất, gửi lại cùng Idempotency-Key và payload, backend trả cùng order; cùng key khác payload bị 409. Cần GET detail để đối soát khi mạng không ổn định.
+Mã demo seed là HOODOO10; mã không hợp lệ trả 409, không âm thầm bỏ qua. Quote không giữ tồn kho. Khi checkout response mất, gửi lại cùng Idempotency-Key và payload, backend trả cùng order; cùng key khác payload bị 409. Cần GET detail để đối soát khi mạng không ổn định.
+
+
+## Tìm kiếm AI local
+
+`POST /api/search/voice`: multipart field `audio`, CSRF bắt buộc, tối đa 5 MB và 15 giây decoded mono 16 kHz. Nhận WebM/Opus, Ogg, MP4 hoặc WAV qua PyAV. Trả `{text, language: "vi", model: "faster-whisper-small"}`; frontend dùng `text` để tìm catalogue. Audio lỗi/quá ngắn/im lặng/không có lời nói trả 400, quá giới hạn trả 413, model chưa tải trả 503. Không lưu audio.
+
+`POST /api/search/image` giữ hợp đồng upload cũ nhưng dùng embedding CLIP chuẩn hóa và cosine similarity thay descriptor màu. Trả tối đa 8 sản phẩm, `similarity` là điểm tương đồng, không phải xác suất. Giữ nguyên kiểm tra ảnh, CSRF và bộ lọc catalogue. Model inference local, không lưu ảnh truy vấn.

@@ -123,4 +123,4 @@ def export_report():
     writer = csv.writer(out)
     writer.writerow(['from_utc', 'to_exclusive_utc', 'generated_at', 'orders', 'paid_orders', 'revenue_vnd'])
     writer.writerow([r['from'], r['to_exclusive'], r['generated_at'], r['order_count'], r['paid_orders'], r['revenue']])
-    return Response(out.getvalue(), mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=mosa-report.csv'})
+    return Response(out.getvalue(), mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=hoodoo-report.csv'})

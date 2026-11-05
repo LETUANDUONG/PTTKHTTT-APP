@@ -24,7 +24,7 @@ def test_order_before_payment_idempotency_snapshot(app,client):
     with app.app_context():
         p=get_db().execute('SELECT * FROM products WHERE id=1').fetchone()
         assert p['stock']==90 and p['reserved']==2
-        get_db().execute('UPDATE products SET price=19000,name=? WHERE id=1',('New Name',))
+        get_db().execute('UPDATE products SET price=19000,name=%s WHERE id=1',('New Name',))
         get_db().commit()
     detail=client.get(f'/api/orders/{o["id"]}').json
     assert detail['items'][0]['price']==12000
@@ -38,7 +38,7 @@ def test_payment_failed_retry_success_dedup(app,client):
     assert call(client,'POST',f'/demo/payments/{oid}',d).json['status']=='payment_failed'
     assert call(client,'POST',f'/demo/payments/{oid}',d).status_code==200
     with app.app_context():
-        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()[0]==0
+        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()['reserved']==0
     assert call(client,'POST',f'/orders/{oid}/payment/retry',{}).json['id']==oid
     success={'result':'success','event_id':'event-success-1'}
     assert call(client,'POST',f'/demo/payments/{oid}',success).json['payment']['status']=='success'
@@ -53,8 +53,8 @@ def test_stock_price_rollback_and_auth(app,client):
     call(client,'POST','/cart/items',{'product_id':1,'quantity':91})
     assert call(client,'POST','/orders',payload(91*12000),headers={'Idempotency-Key':'checkout-stock-2'}).status_code==409
     with app.app_context():
-        assert get_db().execute('SELECT COUNT(*) FROM orders').fetchone()[0]==0
-        assert get_db().execute('SELECT SUM(reserved) FROM products').fetchone()[0]==0
+        assert get_db().execute('SELECT COUNT(*) AS count FROM orders').fetchone()['count']==0
+        assert get_db().execute('SELECT SUM(reserved) AS reserved FROM products').fetchone()['reserved']==0
     call(client,'PATCH','/cart/items/1',{'quantity':1})
     assert call(client,'POST','/orders',payload(9000),headers={'Idempotency-Key':'checkout-stock-3'}).status_code==409
     assert client.get('/api/cart').json['items']
@@ -69,7 +69,7 @@ def test_private_orders_cancellation(app,client):
     assert call(client,'POST',f'/orders/{o["id"]}/cancel',{}).json['status']=='cancelled'
     assert call(client,'POST',f'/orders/{o["id"]}/cancel',{}).status_code==409
     with app.app_context():
-        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()[0]==0
+        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()['reserved']==0
 
 
 def test_concurrent_checkout_no_oversell(app):
@@ -82,7 +82,7 @@ def test_concurrent_checkout_no_oversell(app):
     with ThreadPoolExecutor(max_workers=2) as executor:
         assert sorted(executor.map(place,[0,1]))==[201,409]
     with app.app_context():
-        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()[0]==60
+        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()['reserved']==60
 
 
 def test_pending_and_demo_off(app,client):
@@ -90,3 +90,18 @@ def test_pending_and_demo_off(app,client):
     assert call(client,'POST',f'/demo/payments/{oid}',{'result':'pending','event_id':'pending-event-123'}).json['status']=='pending'
     app.config['DEMO_MODE']=False
     assert call(client,'POST',f'/demo/payments/{oid}',{'result':'success','event_id':'success-event-123'}).status_code==404
+
+
+def test_concurrent_same_key_reserves_once(app):
+    clients = [app.test_client(), app.test_client()]
+    for c in clients:
+        sign_in(c)
+    call(clients[0], 'POST', '/cart/items', {'product_id': 1, 'quantity': 2})
+    def place(c):
+        return call(c, 'POST', '/orders', payload(24000), headers={'Idempotency-Key': 'same-concurrent-key'})
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(place, clients))
+    assert sorted(r.status_code for r in results) == [200, 201]
+    assert results[0].json['id'] == results[1].json['id']
+    with app.app_context():
+        assert get_db().execute('SELECT reserved FROM products WHERE id=1').fetchone()['reserved'] == 2

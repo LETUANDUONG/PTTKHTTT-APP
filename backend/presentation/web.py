@@ -2,8 +2,15 @@ from flask import Blueprint, send_from_directory
 
 from backend.shared.paths import PROJECT_ROOT
 from backend.shared.validation import require
+from backend.data_infrastructure.database.connection import get_db
 
 bp=Blueprint('web',__name__)
+
+
+@bp.get('/healthz')
+def health():
+    get_db().execute('SELECT 1')
+    return {'status': 'ok'}
 
 
 @bp.get('/assets/<path:path>')
