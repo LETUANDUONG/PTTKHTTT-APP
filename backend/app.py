@@ -11,14 +11,13 @@ from backend.presentation.controllers import (
     order_controller, product_controller, search_controller,
 )
 from backend.presentation.web import bp as web
-from backend.shared.paths import PROJECT_ROOT
 
 
 def create_app(config=None):
     app=Flask(__name__,static_folder=None)
     app.config.update(
         SECRET_KEY=os.environ.get('SECRET_KEY') or secrets.token_hex(32),
-        DATABASE=os.environ.get('DATABASE',str(PROJECT_ROOT/'instance/mosa.sqlite')),
+        DATABASE=os.environ.get('DATABASE_URL', ''),
         DEMO_MODE=os.environ.get('DEMO_MODE','1')=='1',
         MAX_CONTENT_LENGTH=5*1024*1024+65536,
         SESSION_COOKIE_HTTPONLY=True,

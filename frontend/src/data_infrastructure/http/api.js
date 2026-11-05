@@ -1,9 +1,12 @@
 let csrf='';
 export async function api(path,options={}) {
-  const {body,...rest}=options;
+  const {body,timeout=15000,signal,...rest}=options;
   const form=body instanceof FormData;
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),15000);
+  const cancel=()=>controller.abort();
+  signal?.addEventListener('abort',cancel,{once:true});
+  if(signal?.aborted) controller.abort();
+  const timer=setTimeout(cancel,timeout);
   try {
     const response=await fetch('/api'+path,{...rest,signal:controller.signal,credentials:'same-origin',headers:{...(form?{}:{'Content-Type':'application/json'}),'X-CSRF-Token':csrf,...rest.headers},body:body===undefined?undefined:form?body:JSON.stringify(body)});
     const data=await response.json();
@@ -14,7 +17,7 @@ export async function api(path,options={}) {
     if(error.name==='AbortError') throw new Error('Yêu cầu quá thời gian. Kiểm tra kết nối và thử lại.');
     if(error instanceof TypeError) throw new Error('Không kết nối được máy chủ. Kiểm tra kết nối và thử lại.');
     throw error;
-  } finally {clearTimeout(timer);}
+  } finally {clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
 }
 export const money=value=>new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(value);
 export const date=value=>value?new Date(value).toLocaleString('vi-VN'):'';

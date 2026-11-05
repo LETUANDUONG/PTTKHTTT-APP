@@ -1,3 +1,4 @@
+from backend.data_infrastructure.database.connection import lock_workflow
 from .inventory_service import release
 from .inventory_service import reserve
 from .order_records import history
@@ -13,20 +14,20 @@ from backend.data_infrastructure.adapters.payment_gateway_adapter import initial
 
 def create_payment(order_id,method,amount):
     # The order and reservation already exist in the caller's transaction.
-    get_db().execute('INSERT INTO payments VALUES(?,?,?,?,?)',initial_payment(order_id,method,amount))
+    get_db().execute('INSERT INTO payments VALUES(%s,%s,%s,%s,%s)',initial_payment(order_id,method,amount))
 
 
 def retry_payment(oid, *, user, config):
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
+    lock_workflow()
     o = own_order(oid, user=user)
-    p = one('SELECT * FROM payments WHERE order_id=?', (oid,))
+    p = one('SELECT * FROM payments WHERE order_id=%s', (oid,))
     require(p['method'] == 'demo' and config['DEMO_MODE'], 'Không hỗ trợ yêu cầu này.', 409)
     require(o['status'] in ['pending', 'payment_failed'], 'Đơn không thể thanh toán lại.', 409)
     if o['status'] == 'payment_failed':
         reserve(oid, user['id'])
-    db.execute("UPDATE orders SET status='pending' WHERE id=?", (oid,))
-    db.execute("UPDATE payments SET status='pending' WHERE order_id=?", (oid,))
+    db.execute("UPDATE orders SET status='pending' WHERE id=%s", (oid,))
+    db.execute("UPDATE payments SET status='pending' WHERE order_id=%s", (oid,))
     history(oid, 'pending', user['id'])
     db.commit()
     return order_detail(oid)
@@ -39,22 +40,22 @@ def demo_payment(oid, *, data, user, config):
     require(result in ['success', 'failed', 'pending'], 'Kết quả không hợp lệ.')
     event = text(d.get('event_id'), 'Mã sự kiện', 8, 100)
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
+    lock_workflow()
     own_order(oid, user=user)
-    previous = one('SELECT * FROM payment_events WHERE event_id=?', (event,))
+    previous = one('SELECT * FROM payment_events WHERE event_id=%s', (event,))
     if previous:
         require(previous['order_id'] == oid and previous['result'] == result, 'Mã sự kiện xung đột.', 409)
         db.commit()
         return order_detail(oid)
-    p = one('SELECT * FROM payments WHERE order_id=?', (oid,))
+    p = one('SELECT * FROM payments WHERE order_id=%s', (oid,))
     require(p['method'] == 'demo', 'Đơn này không dùng thanh toán demo.', 409)
     require(p['status'] == 'pending', 'Kết quả cuối đã được ghi nhận; không thể ghi đè.', 409)
-    db.execute('INSERT INTO payment_events VALUES(?,?,?,?)', (event, oid, result, now()))
+    db.execute('INSERT INTO payment_events VALUES(%s,%s,%s,%s)', (event, oid, result, now()))
     if result == 'failed':
         release(oid, user['id'])
     status = {'success': 'confirmed', 'failed': 'payment_failed', 'pending': 'pending'}[result]
-    db.execute('UPDATE payments SET status=? WHERE order_id=?', (result, oid))
-    db.execute('UPDATE orders SET status=? WHERE id=?', (status, oid))
+    db.execute('UPDATE payments SET status=%s WHERE order_id=%s', (result, oid))
+    db.execute('UPDATE orders SET status=%s WHERE id=%s', (status, oid))
     history(oid, status, 'demo:' + str(user['id']))
     db.commit()
     return order_detail(oid)

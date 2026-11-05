@@ -16,3 +16,10 @@ def image_search():
     upload=request.files.get('image')
     require(upload is not None,'Chọn ảnh JPEG, PNG hoặc WebP.')
     return jsonify(search_orchestrator.image_search(upload.read(5*1024*1024+1),request.args))
+
+
+@bp.post('/api/search/voice')
+def voice_search():
+    upload=request.files.get('audio')
+    require(upload is not None,'Hãy ghi âm để tìm sản phẩm.')
+    return jsonify(search_orchestrator.voice_search(upload.read(5*1024*1024+1)))

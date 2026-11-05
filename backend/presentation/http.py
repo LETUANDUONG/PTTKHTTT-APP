@@ -1,6 +1,6 @@
 """HTTP/session concerns shared by controllers, outside application services."""
 import secrets
-import sqlite3
+import psycopg
 import time
 from functools import wraps
 
@@ -81,7 +81,7 @@ def register_http(app):
         get_db().rollback()
         return jsonify(error=error.description,code=error.code),error.code
 
-    @app.errorhandler(sqlite3.IntegrityError)
+    @app.errorhandler(psycopg.IntegrityError)
     def integrity_error(error):
         get_db().rollback()
         return jsonify(error='Dữ liệu trùng hoặc vi phạm ràng buộc.',code=409),409

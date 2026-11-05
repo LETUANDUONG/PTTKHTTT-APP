@@ -8,7 +8,7 @@ def test_guest_merge_separate_units_update_delete(app,client):
     c=client.get('/api/cart').json
     assert len(c['items'])==2 and c['items'][0]['quantity']==3
     with app.app_context():
-        assert get_db().execute('SELECT SUM(reserved) FROM products').fetchone()[0]==0
+        assert get_db().execute('SELECT SUM(reserved) AS reserved FROM products').fetchone()['reserved']==0
     assert call(client,'PATCH','/cart/items/1',{'quantity':4}).json['items'][0]['quantity']==4
     assert len(call(client,'DELETE','/cart/items/7').json['items'])==1
     assert call(client,'DELETE','/cart/items/7').status_code==404

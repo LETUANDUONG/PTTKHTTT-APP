@@ -11,3 +11,4 @@ def test_production_bundle_and_spa_route(client):
         assert client.get('/assets/'+p.name).status_code==200
     assert client.get('/assets/pen-blue.png').status_code==200
     assert client.get('/api/not-real').status_code==404
+    assert client.get('/healthz').json == {'status': 'ok'}

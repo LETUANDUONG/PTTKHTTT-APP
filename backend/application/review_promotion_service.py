@@ -15,7 +15,7 @@ def quote(owner, code=''):
     discount = 0
     code = code.strip().upper()
     if code:
-        p = one('SELECT * FROM promotions WHERE code=?', (code,))
+        p = one('SELECT * FROM promotions WHERE code=%s', (code,))
         require(p and p['active'] and (p['starts_at'] <= now() <= p['ends_at']) and (c['subtotal'] >= p['minimum']), 'Mã giảm giá không hợp lệ, hết hạn hoặc chưa đủ điều kiện.', 409)
         discount = c['subtotal'] * p['percent'] // 100
     shipping = 0 if c['subtotal'] - discount >= 300000 else 25000
@@ -27,7 +27,7 @@ def checkout_quote(*, data, owner):
 
 
 def save_promotion(pid=None, *, data, user):
-    old = one('SELECT * FROM promotions WHERE id=?', (pid,)) if pid else None
+    old = one('SELECT * FROM promotions WHERE id=%s', (pid,)) if pid else None
     require(not pid or old, 'Không có ưu đãi này.', 404)
     incoming = data
     d = {**(old or {}), **incoming}
@@ -40,20 +40,20 @@ def save_promotion(pid=None, *, data, user):
     values = (code, integer(d.get('percent'), 'Phần trăm', 1, 50), integer(d.get('minimum'), 'Giá trị tối thiểu', 0), start, end, boolean(active, 'Kích hoạt'))
     db = get_db()
     if pid:
-        db.execute('UPDATE promotions SET code=?,percent=?,minimum=?,starts_at=?,ends_at=?,active=? WHERE id=?', values + (pid,))
+        db.execute('UPDATE promotions SET code=%s,percent=%s,minimum=%s,starts_at=%s,ends_at=%s,active=%s WHERE id=%s', values + (pid,))
     else:
-        pid = db.execute('INSERT INTO promotions(code,percent,minimum,starts_at,ends_at,active) VALUES(?,?,?,?,?,?)', values).lastrowid
+        pid = db.execute('INSERT INTO promotions(code,percent,minimum,starts_at,ends_at,active) VALUES(%s,%s,%s,%s,%s,%s) RETURNING id', values).fetchone()['id']
     audit(user['id'], 'promotion.save', pid)
     db.commit()
-    return one('SELECT * FROM promotions WHERE id=?', (pid,))
+    return one('SELECT * FROM promotions WHERE id=%s', (pid,))
 
 
 def review(pid, *, data, user):
     d = data
-    require(one("SELECT 1 FROM orders o JOIN order_items i ON i.order_id=o.id WHERE o.user_id=? AND i.product_id=? AND o.status='delivered'", (user['id'], pid)), 'Chỉ đánh giá sản phẩm trong đơn đã giao.', 403)
+    require(one("SELECT 1 FROM orders o JOIN order_items i ON i.order_id=o.id WHERE o.user_id=%s AND i.product_id=%s AND o.status='delivered'", (user['id'], pid)), 'Chỉ đánh giá sản phẩm trong đơn đã giao.', 403)
     rating = integer(d.get('rating'), 'Điểm đánh giá', 1, 5)
     comment = text(d.get('comment'), 'Đánh giá', 3, 1000)
     db = get_db()
-    db.execute('INSERT INTO reviews(user_id,product_id,rating,comment,created_at) VALUES(?,?,?,?,?)', (user['id'], pid, rating, comment, now()))
+    db.execute('INSERT INTO reviews(user_id,product_id,rating,comment,created_at) VALUES(%s,%s,%s,%s,%s)', (user['id'], pid, rating, comment, now()))
     db.commit()
     return ({'ok': True}, 201)

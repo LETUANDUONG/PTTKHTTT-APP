@@ -1,3 +1,4 @@
+from backend.data_infrastructure.database.connection import lock_workflow
 from backend.data_infrastructure.adapters.shipping_provider_adapter import shipment_record
 from .audit_service import audit
 from .fulfillment_service import transition
@@ -14,11 +15,11 @@ def shipment(oid, *, data, user):
     provider = text(d.get('provider'), 'Đơn vị vận chuyển', 2, 100)
     tracking = text(d.get('tracking_code'), 'Mã vận đơn', 3, 100)
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
+    lock_workflow()
     o = order_detail(oid)
     require(o['status'] in ['shipped', 'delivered'], 'Đơn cần được xuất kho trước khi gắn vận đơn.', 409)
     require(not o['shipment'], 'Đơn đã có vận đơn.', 409)
-    db.execute('INSERT INTO shipments VALUES(?,?,?,?,?)', shipment_record(oid, provider, tracking))
+    db.execute('INSERT INTO shipments VALUES(%s,%s,%s,%s,%s)', shipment_record(oid, provider, tracking))
     audit(user['id'], 'shipment.create', oid)
     db.commit()
     return order_detail(oid)
@@ -31,10 +32,10 @@ def tracking(oid, *, data, user):
     require(status in ['in_transit', 'delivered', 'exception'], 'Trạng thái vận chuyển không hợp lệ.')
     message = text(d.get('message'), 'Nội dung', 3, 500)
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
-    s = one('SELECT * FROM shipments WHERE order_id=?', (oid,))
+    lock_workflow()
+    s = one('SELECT * FROM shipments WHERE order_id=%s', (oid,))
     require(s, 'Chưa có vận đơn.', 409)
-    old = one('SELECT * FROM tracking_events WHERE event_id=?', (event,))
+    old = one('SELECT * FROM tracking_events WHERE event_id=%s', (event,))
     if old:
         require(old['order_id'] == oid and old['status'] == status and (old['message'] == message), 'Sự kiện xung đột.', 409)
         db.commit()
@@ -44,8 +45,8 @@ def tracking(oid, *, data, user):
         o = order_detail(oid)
         if o['status'] != 'delivered':
             transition(oid, 'delivered', user['id'])
-    db.execute('INSERT INTO tracking_events VALUES(?,?,?,?,?)', (event, oid, status, message, now()))
-    db.execute('UPDATE shipments SET status=?,updated_at=? WHERE order_id=?', (status, now(), oid))
+    db.execute('INSERT INTO tracking_events VALUES(%s,%s,%s,%s,%s)', (event, oid, status, message, now()))
+    db.execute('UPDATE shipments SET status=%s,updated_at=%s WHERE order_id=%s', (status, now(), oid))
     audit(user['id'], 'tracking.' + status, oid)
     db.commit()
     return order_detail(oid)

@@ -78,16 +78,16 @@ This report specifies a complete e-commerce information system for an stationery
 Chapter 1 Requirements Determination
 1.1 Business Background
 1.1.1 Mart Overview
-Mosa is a medium-sized online stationery retailer that serves customers through a web storefront and a mobile-responsive customer interface. The business sells pens, pencils, notebooks, paper, school supplies, files, folders, and office accessories. Its value proposition is to provide customers with reliable product information, transparent pricing, convenient ordering, secure payment options, and predictable delivery. The retailer competes through catalogue quality, product availability, service responsiveness, promotions, and the ability to turn a customer visit into a completed and well-supported order.
+Hoodoo is a medium-sized online stationery retailer that serves customers through a web storefront and a mobile-responsive customer interface. The business sells pens, pencils, notebooks, paper, school supplies, files, folders, and office accessories. Its value proposition is to provide customers with reliable product information, transparent pricing, convenient ordering, secure payment options, and predictable delivery. The retailer competes through catalogue quality, product availability, service responsiveness, promotions, and the ability to turn a customer visit into a completed and well-supported order.
 The company currently operates with information distributed across spreadsheets, staff messages, and separate partner portals. Product records can be edited by several people, inventory changes may be recorded after the physical movement occurs, and staff must often reconcile order, payment, and shipping information manually. This creates a clear need for an integrated e-commerce information system. The proposed system is not merely a website: it is the operational platform that connects customer-facing shopping activities with catalogue administration, inventory control, order processing, payment, fulfilment, delivery, customer service, and management reporting.
 
 This chapter investigates the organisation before prescribing a technical solution. It explains the business context, identifies stakeholders and their information needs, analyses the information managed by the business, examines current problems and their consequences, and defines the purpose, boundary, information flows, and objectives of the proposed system. The findings are used directly in Chapter 2 for functional analysis, in Chapter 3 for AI-enabled opportunities, in Chapter 4 for architecture and data design, and in Chapter 5 for implementation planning.
  
 1.1.2 Business Model
-Mosa operates as a business-to-consumer retailer. Customers explore the online catalogue, compare available products, place selected items in a shopping cart, submit delivery and payment information, and receive an order confirmation. The retailer earns revenue from the difference between selling price and the cost of goods, while promotions may be used to stimulate demand, clear inventory, or encourage repeat purchase. Product availability, price, service quality, and delivery reliability directly influence conversion, repeat purchase, and customer trust.
+Hoodoo operates as a business-to-consumer retailer. Customers explore the online catalogue, compare available products, place selected items in a shopping cart, submit delivery and payment information, and receive an order confirmation. The retailer earns revenue from the difference between selling price and the cost of goods, while promotions may be used to stimulate demand, clear inventory, or encourage repeat purchase. Product availability, price, service quality, and delivery reliability directly influence conversion, repeat purchase, and customer trust.
 The business model contains two connected value streams. The first is the customer value stream: product discovery, evaluation, purchase, payment, delivery, and after-sales support. The second is the operational value stream: catalogue maintenance, inventory replenishment, stock allocation, order fulfilment, partner coordination, reporting, and performance improvement. The information system must serve both streams using the same authoritative data rather than allowing each department to maintain incompatible copies.
 Business Element
-Mosa Approach
+Hoodoo Approach
 Information-System Need
 Sales channel
 Web and mobile online storefront.
@@ -110,7 +110,7 @@ The system should therefore be designed around repeatable business processes rat
 1.1.3 Products and Customers
 The stationery catalogue contains products with unique product identifiers (product_id), names, categories, descriptions, images, prices, supplier references, promotion eligibility, selling units, and stock quantities. Relevant attributes depend on the product category: ink colour and tip size for pens; paper size and weight for paper; and page count and ruling for notebooks. Each separately sold colour, size, or pack configuration is maintained as a separate product record with its own product_id, price, selling unit, and stock quantity. Selling units may include an individual item, box, pack, or ream, and the catalogue must state the quantity contained in each unit. Individual items and packs are stocked as separate products; automatic conversion between loose items and packs is not supported. Cart lines, order lines, stock reservations, and fulfilment identify the selected product by product_id and express quantities in that product's stated selling unit. Repeated additions of the same product_id increase the existing cart-line quantity, while different product identifiers remain separate lines. The system must retain accurate product-level price and availability information and display enough product specifications for customers to select the intended stationery item.
 
-Mosa serves individual stationery buyers, including students, teachers, and people purchasing supplies for personal study or office use. Customers may register or, where policy permits, shop as guests. They may arrive through direct search, social campaigns, paid advertisements, email promotions, or repeat visits.
+Hoodoo serves individual stationery buyers, including students, teachers, and people purchasing supplies for personal study or office use. Customers may register or, where policy permits, shop as guests. They may arrive through direct search, social campaigns, paid advertisements, email promotions, or repeat visits.
 
 Their needs differ: a first-time visitor needs clear discovery and reassurance; a returning customer needs efficient reordering and trustworthy order history; a customer with a problem needs prompt service and an unambiguous status. The proposed system must support these situations without exposing personal data or allowing one customer to access another customer’s information.
 
@@ -224,7 +224,7 @@ reviews and ratings.
 1.3.2 Information Catalogue
 The table below presents each information type, its source, users, and corresponding business purpose.
 
-Table 1.2: Mosa Information Catalogue
+Table 1.2: Hoodoo Information Catalogue
 
  
 Information
@@ -313,7 +313,7 @@ Staff repeat lookups and take longer to resolve customer questions.
 
  
 
-Figure 3: Problem Tree for Mosa
+Figure 3: Problem Tree for Hoodoo
 
  
 
@@ -379,24 +379,24 @@ Figure 4: Context Diagram for the Proposed E-commerce Information System
  
 Chapter 2 Requirements Analysis
 2.1 Stakeholder Needs
-This section translates the Mosa business context, stakeholders, information assets, problems, and objectives in Chapter 1 into outcomes expected from the system. The needs are expressed independently of screen layout or implementation technology. They provide the rationale for the requirements in Section 2.2 and for the use cases later in this chapter. Several needs cross organizational boundaries: accurate inventory supports customers, warehouse staff, and managers, while a coherent order record supports customers, sales staff, and external service coordination.
+This section translates the Hoodoo business context, stakeholders, information assets, problems, and objectives in Chapter 1 into outcomes expected from the system. The needs are expressed independently of screen layout or implementation technology. They provide the rationale for the requirements in Section 2.2 and for the use cases later in this chapter. Several needs cross organizational boundaries: accurate inventory supports customers, warehouse staff, and managers, while a coherent order record supports customers, sales staff, and external service coordination.
 
 2.1.1 Stakeholder Objectives
 Customers need to discover suitable products, compare current descriptions and prices, understand whether an item appears available, and complete an order with confidence. A visitor should be able to browse and search without providing unnecessary personal information. A registered customer needs an account view for personal order history and delivery status. After placing an order, the customer needs a clear distinction between order acceptance, payment processing, fulfilment, and shipment; these are different business events and must not be collapsed into one ambiguous “complete” state.
 
 Administrators need to maintain product, category, price, attribute, and promotion data from a controlled source. They need validation that prevents incomplete or inconsistent information from being published. The system should make the current active record available consistently to public product views and internal staff views, while retaining an attributable history of significant updates.
 
-Sales staff need to respond to questions using the order and customer context required for service. They need to identify the current state, see relevant status history, and record unresolved issues for follow-up. The system should reduce manual reconciliation and make it clear whether a case can be resolved by Mosa or needs an external payment or shipping provider.
+Sales staff need to respond to questions using the order and customer context required for service. They need to identify the current state, see relevant status history, and record unresolved issues for follow-up. The system should reduce manual reconciliation and make it clear whether a case can be resolved by Hoodoo or needs an external payment or shipping provider.
 
 Warehouse staff need to receive, adjust, pick, pack, and dispatch stock using product and quantity information that can be trusted. Their system actions must correspond to physical or approved operational events. They need a traceable record for receipts, reservations, fulfilment, and corrections so that stock discrepancies can be investigated rather than hidden by overwriting a balance.
 
 Managers need timely views of sales, inventory, order, promotion, and service activity. They need to know the selected period and status definitions behind a report so they can interpret results consistently. They need to identify exceptions and trends without manually combining disconnected records.
 
-The payment provider needs to receive an identifiable payment request and return an outcome that Mosa can link to the correct order. The provider remains responsible for payment processing. Mosa must not treat a request as paid until a valid result is received and associated with its transaction reference.
+The payment provider needs to receive an identifiable payment request and return an outcome that Hoodoo can link to the correct order. The provider remains responsible for payment processing. Hoodoo must not treat a request as paid until a valid result is received and associated with its transaction reference.
 
-The shipping provider needs accurate delivery information for an eligible order and a way to return a shipment reference and tracking events. The provider remains responsible for physical carriage. Mosa needs to associate each returned event with the corresponding order and communicate only the latest status actually known.
+The shipping provider needs accurate delivery information for an eligible order and a way to return a shipment reference and tracking events. The provider remains responsible for physical carriage. Hoodoo needs to associate each returned event with the corresponding order and communicate only the latest status actually known.
 
-Suppliers need a clear replenishment or receipt exchange where Mosa supports that workflow. If a direct system integration is unavailable, staff still need to record the source, product, and quantity of a receipt. Supplier records must remain distinguishable from customer orders.
+Suppliers need a clear replenishment or receipt exchange where Hoodoo supports that workflow. If a direct system integration is unavailable, staff still need to record the source, product, and quantity of a receipt. Supplier records must remain distinguishable from customer orders.
 Table 2.1 Stakeholder objectives
  
 Stakeholder
@@ -437,7 +437,7 @@ Accurate inventory — Warehouse staff and managers need stock levels to reflect
 SN05
 Order visibility — Customers and sales staff need a unique order record and a clear status history from placement through fulfilment.
 SN06
-Coordinated payment — Customers, Mosa, and the payment provider need requests and outcomes linked to the correct order without ambiguous paid/unpaid states.
+Coordinated payment — Customers, Hoodoo, and the payment provider need requests and outcomes linked to the correct order without ambiguous paid/unpaid states.
 SN07
 Delivery visibility — Customers and sales staff need shipment references and the latest available tracking status linked to the correct order.
 SN08
@@ -449,16 +449,16 @@ Controlled staff and partner access — Administrators and managers need role-li
  
 The needs are related but not interchangeable. SN01 depends on the quality of catalogue attributes covered by SN02; searching incomplete or contradictory product data will not produce dependable discovery. SN03 depends on current prices, cart state, customer-supplied delivery details, inventory validation, and an external payment result. A successful button action is not sufficient proof of a successful order. The system must preserve the confirmed order information and show whether payment is accepted, declined, or still pending.
 
-SN04 requires Mosa to distinguish physical on-hand stock from quantities that can be promised to a new order. A reservation changes availability; it does not represent a physical receipt. A receipt increases recorded on-hand stock, while fulfilment, cancellation, return, or correction follows an explicitly defined movement rule. Customer-facing availability and management reports should use the same definitions.
+SN04 requires Hoodoo to distinguish physical on-hand stock from quantities that can be promised to a new order. A reservation changes availability; it does not represent a physical receipt. A receipt increases recorded on-hand stock, while fulfilment, cancellation, return, or correction follows an explicitly defined movement rule. Customer-facing availability and management reports should use the same definitions.
 
 SN05 and SN07 describe separate states. An order can exist before a shipment is created. Payment acceptance does not mean an order has shipped, and a shipment label does not necessarily mean that a carrier has physically received the parcel. The customer view must show the latest status that the system has actually received and its update time when data may be delayed.
 
-SN08 and SN10 constrain staff and partner access. Sales staff need relevant order context, but should not receive unrestricted access to customer or payment data. Payment credentials remain with the provider; Mosa retains the transaction reference and outcome needed for order operations. Significant changes and provider results should have an identifiable source and time where available.
+SN08 and SN10 constrain staff and partner access. Sales staff need relevant order context, but should not receive unrestricted access to customer or payment data. Payment credentials remain with the provider; Hoodoo retains the transaction reference and outcome needed for order operations. Significant changes and provider results should have an identifiable source and time where available.
 
 SN09 depends on consistent source records and metric definitions. Sales reports need to state whether they count placed, paid, cancelled, refunded, or completed orders. Inventory reports need to distinguish on-hand, reserved, and available stock. Without those definitions, an apparently precise report can still lead to a poor decision.
  
 2.2 Functional and Non-functional Requirements
-Functional requirements specify services Mosa shall provide. Non-functional requirements state measurable quality or operational constraints that apply across services. The requirement identifiers are stable references for design, testing, and traceability. “Shall” marks a mandatory behaviour in the proposed system baseline. Provider-specific protocols, deployment technology, and detailed business policies remain open until the relevant choices are confirmed.
+Functional requirements specify services Hoodoo shall provide. Non-functional requirements state measurable quality or operational constraints that apply across services. The requirement identifiers are stable references for design, testing, and traceability. “Shall” marks a mandatory behaviour in the proposed system baseline. Provider-specific protocols, deployment technology, and detailed business policies remain open until the relevant choices are confirmed.
 
 2.2.1 Functional Requirements
 Table 2.3 Functional requirements
@@ -493,7 +493,7 @@ FR13
 Management reporting — The system shall allow authorized managers to generate sales, order, inventory, promotion, or service reports for a selected period and identify the period, status scope, and generation time.
 FR14
 Order history and notification — The system shall maintain chronological order-status history and
-provide order confirmation and relevant status notifications through channels configured by Mosa.
+provide order confirmation and relevant status notifications through channels configured by Hoodoo.
 FR15
 Catalogue consistency — The system shall validate required catalogue fields and category relationships before publication and use the same active product record for customer and internal product views.
 
@@ -502,7 +502,7 @@ Promotion management — The system shall allow authorized staff to define, revi
 FR17
 Customer-service context — The system shall allow authorized sales staff to locate a customer or order and view information needed to resolve an enquiry, subject to role permissions and privacy controls.
 FR18
-Reviews and ratings — The system shall allow a customer to submit a product review or rating under Mosa’s configured policy and associate it with the product and, when required, a verified purchase.
+Reviews and ratings — The system shall allow a customer to submit a product review or rating under Hoodoo’s configured policy and associate it with the product and, when required, a verified purchase.
 FR19
 Inventory receipt and adjustment — The system shall allow authorized warehouse staff to record stock receipts and adjustments by product and quantity with a movement type, time, and responsible account or source.
 FR20
@@ -510,7 +510,7 @@ Fulfilment coordination — The system shall present eligible order lines to aut
 FR21
 Shipping hand-off — The system shall provide delivery information to the shipping provider or authorized staff and record the shipment identifier returned for the order.
 FR22
-Partner reconciliation — The system shall associate payment and shipping messages with a Mosa order using a transaction, shipment, or correlation reference and retain the returned outcome.
+Partner reconciliation — The system shall associate payment and shipping messages with a Hoodoo order using a transaction, shipment, or correlation reference and retain the returned outcome.
 FR23
 Supplier replenishment — Where the supplier process is enabled, the system shall allow authorized staff to record a replenishment request or receipt with supplier, product, quantity, and status.
 FR24
@@ -534,7 +534,7 @@ NFR02
 Checkout feedback — Checkout should show an accepted, pending, or rejected outcome within 5
 seconds when the provider responds within its agreed service window; a slower response must remain pending without creating a duplicate order.
 NFR03
-Availability — Storefront and order-view services should target 99.5% monthly availability, excluding maintenance agreed in advance; the target must be checked against Mosa capacity and provider dependencies.
+Availability — Storefront and order-view services should target 99.5% monthly availability, excluding maintenance agreed in advance; the target must be checked against Hoodoo capacity and provider dependencies.
 NFR04
 Access control — Protected customer, administrative, warehouse, and managerial functions shall enforce role-appropriate authorization. Customers may view only their own private records.
 NFR05
@@ -569,7 +569,7 @@ Status consistency — Customer, staff, and report views shall use a shared mapp
 Targets such as response time and availability need an agreed test environment and workload. Recovery targets need a business decision about acceptable data loss and service restoration. These values are stated now so quality can be evaluated in design and acceptance, not to imply that an operational service level has already been measured.
 
 2.2.3 Requirement Prioritization
-The MoSCoW method indicates the relative priority for the initial Mosa scope. “Must”
+The MoSCoW method indicates the relative priority for the initial Hoodoo scope. “Must”
 requirements are needed for a coherent shopping, order, inventory, and fulfilment flow. “Should”
 requirements add important operating value and may be staged only if the initial release is constrained. “Could” requirements are useful extensions. “Won’t for this release” marks work outside the proposed baseline.
 Table 2.5 MoSCoW priority summary
@@ -640,11 +640,11 @@ Manage Customers — Administrator maintains customer records and account status
 UC16
 Manage Orders — Sales Staff reviews orders, makes authorized status updates, and handles order exceptions. Related needs: SN05, SN08, SN10.
 UC17
-Manage Product Supply — Supplier exchanges replenishment information with Mosa where direct supplier interaction is enabled. Related need: SN04.
+Manage Product Supply — Supplier exchanges replenishment information with Hoodoo where direct supplier interaction is enabled. Related need: SN04.
 UC18
-Manage delivery — Mosa coordinates shipment information and tracking exchanges with the Shipping Provider. Related needs: SN05, SN07.
+Manage delivery — Hoodoo coordinates shipment information and tracking exchanges with the Shipping Provider. Related needs: SN05, SN07.
 UC19
-Process Payment — Mosa sends a payment request for an existing order to the Payment Provider and records its correlated pending, successful, or failed result. Related needs: SN03, SN06.
+Process Payment — Hoodoo sends a payment request for an existing order to the Payment Provider and records its correlated pending, successful, or failed result. Related needs: SN03, SN06.
 UC20
 Voice Search — Customer supplies a spoken query to find relevant published products. Related needs: SN01, SN02.
 UC21
@@ -1263,9 +1263,9 @@ flowchart TD
 ```
 
 2.5 Swimlane Diagrams
-The swimlane diagrams assign activities to the Customer, Administrator, Mosa System, and Payment Provider. They complement the Customer and Administrator specifications in Section 2.4. Other operational roles remain in the overall system scope defined in Chapters 1 and 2; their detailed workflows are not expanded here.
+The swimlane diagrams assign activities to the Customer, Administrator, Hoodoo System, and Payment Provider. They complement the Customer and Administrator specifications in Section 2.4. Other operational roles remain in the overall system scope defined in Chapters 1 and 2; their detailed workflows are not expanded here.
 2.5.1 Place Order and Process Payment
-This flow covers UC05 Place Order and its included UC19 Process Payment. Mosa validates checkout, creates a unique pending-payment order, and reserves stock before requesting payment. Provider results update that same order. Order creation, successful payment, fulfilment, and delivery remain separate events.
+This flow covers UC05 Place Order and its included UC19 Process Payment. Hoodoo validates checkout, creates a unique pending-payment order, and reserves stock before requesting payment. Provider results update that same order. Order creation, successful payment, fulfilment, and delivery remain separate events.
 ```mermaid
 flowchart TD
     subgraph Customer["Customer"]
@@ -1273,7 +1273,7 @@ flowchart TD
         Fix["Review errors or changed totals"] --> C
         View["View current order and payment outcome"] --> E((End))
     end
-    subgraph Mosa["Mosa System"]
+    subgraph Hoodoo["Hoodoo System"]
         V{"Checkout valid and stock available?"}
         Create["Create unique pending-payment order"]
         Reserve["Reserve stock in the product selling unit"]
@@ -1314,7 +1314,7 @@ flowchart TD
         Correct["Correct validation errors"] --> Edit
         Publish["Choose publication of valid record"]
     end
-    subgraph System["Mosa System"]
+    subgraph System["Hoodoo System"]
         Auth{"Catalogue permission granted?"}
         Deny["Deny catalogue action"]
         Validate{"Required fields and product relationships valid?"}
@@ -1412,7 +1412,7 @@ The remaining coverage gaps are explicit specification work, not evidence of com
 
 Chapter 3 AI in E Commerce
 3.1 Role of AI in the Complete System
-AI supports product discovery for Mosa, an online stationery retailer. The current model includes UC02 Search Products and its refinements UC20 Voice Search, UC21 Keyword Search, and UC22 Image Search, alongside UC13 Browse Products and UC03 View Product Details. These use cases are already described in Chapter 2; they are not all uncommitted future extensions. Section 2.6 nevertheless identifies that FR04 must explicitly incorporate voice and image search before claiming complete functional-requirement coverage. Keyword search can use conventional retrieval, with AI as an optional aid for interpretation or ranking. Catalogue, cart, inventory, order, and payment rules remain authoritative. No implementation or measured AI result is claimed.
+AI supports product discovery for Hoodoo, an online stationery retailer. The current model includes UC02 Search Products and its refinements UC20 Voice Search, UC21 Keyword Search, and UC22 Image Search, alongside UC13 Browse Products and UC03 View Product Details. These use cases are already described in Chapter 2; they are not all uncommitted future extensions. Section 2.6 nevertheless identifies that FR04 must explicitly incorporate voice and image search before claiming complete functional-requirement coverage. Keyword search can use conventional retrieval, with AI as an optional aid for interpretation or ranking. Catalogue, cart, inventory, order, and payment rules remain authoritative. No implementation or measured AI result is claimed.
 Capability
 Input and output
 Business control
@@ -1447,7 +1447,7 @@ Section 4.1 follows entity-class-diagram(3).vpp. Its analysis model contains 14 
 4.1.1 Identification of domain classes
 Customer and Review represent customer identity and feedback. Category, Product, and ProductImage represent stationery catalogue information. SearchQuery, SearchFilter, SearchResult, and SearchModality describe multimodal discovery. Cart, CartItem, Order, OrderItem, and Payment describe purchasing and payment. Each separately sold colour, size, or pack configuration is a Product with its own productId; no separate size-level stock class is used.
 
-Figure 4.1: Analysis class diagram of Mosa based on the supplied VPP model.
+Figure 4.1: Analysis class diagram of Hoodoo based on the supplied VPP model.
 Table 4.1: Analysis classes, VPP attributes, and responsibilities.
 
 Class
@@ -1707,7 +1707,7 @@ Deploy the transactional application, database, background workers and integrati
 business owners.
 
 Conclusion
-The proposed Mosa information system connects product discovery, ordering, payment, inventory, fulfilment and reporting through defined responsibilities and information flows. The analysis identifies stakeholder needs and validation issues; the design describes how those needs may be implemented
+The proposed Hoodoo information system connects product discovery, ordering, payment, inventory, fulfilment and reporting through defined responsibilities and information flows. The analysis identifies stakeholder needs and validation issues; the design describes how those needs may be implemented
 while preserving distinct transactional states. AI can improve discovery and support decisions when evaluated against documented examples and governed as a replaceable service. Outstanding business policies and implementation evidence must be established before production deployment.
 References
 [1] Hung, N. M. Assignment 06 Report: E Commerce System Prototype.
