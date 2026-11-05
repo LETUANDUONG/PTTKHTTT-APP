@@ -35,7 +35,7 @@ Lần đầu cần mạng để cài các gói trong `requirements-ai.txt` và t
 
 ```powershell
 docker compose build app
-docker compose run --rm --no-deps -e HF_HUB_OFFLINE=0 -e TRANSFORMERS_OFFLINE=0 -v "${PWD}/models:/app/models" app python scripts/download_models.py
+docker run --rm -e HF_HUB_OFFLINE=0 -e TRANSFORMERS_OFFLINE=0 -v "${PWD}/models:/app/models" hoodoo-app python scripts/download_models.py
 docker compose up -d --wait
 ```
 
@@ -149,6 +149,10 @@ docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" --exit-on-error 
 ```
 
 Sau khi kiểm tra database khôi phục, đổi `POSTGRES_DB=hoodoo_restored` trong `.env` và chạy `docker compose up -d --force-recreate --wait`. Database đích phải mới; không restore đè app đang chạy. Chưa chốt RPO/RTO production.
+
+## Gợi ý sản phẩm hybrid
+
+Trang chủ và trang chi tiết gọi `GET /api/recommendations?limit=4` (thêm `product_id` để gợi ý theo sản phẩm đang xem). Hệ thống kết hợp lịch sử mua/đánh giá/giỏ hàng với sản phẩm thường được mua cùng (collaborative filtering), độ tương đồng của danh mục, tên, thương hiệu và thông số (content-based), rồi xếp hạng bằng mô hình tuyến tính học theo cặp từ các tương tác mua/đánh giá tích cực. Mỗi ví dụ huấn luyện bỏ sản phẩm đích khỏi lịch sử người dùng để tránh dùng chính nhãn làm tín hiệu. Khi chưa đủ tương tác từ ít nhất hai người dùng, bộ xếp hạng dùng trọng số dự phòng; người dùng mới vẫn nhận gợi ý theo sản phẩm đang xem hoặc độ phổ biến. Sản phẩm ẩn, hết hàng, đã mua/đang trong giỏ hoặc bị người dùng đánh giá thấp không được gợi ý. Mô hình được tính trên dữ liệu PostgreSQL hiện tại, không cần tải thêm trọng số AI.
 
 ## Giới hạn tích hợp
 
