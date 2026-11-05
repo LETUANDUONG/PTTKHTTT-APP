@@ -15,6 +15,7 @@ services:
       interval: 5s
       retries: 10
   app:
+    image: hoodoo-app
     build: .
     env_file: .env
     depends_on:
