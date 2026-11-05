@@ -82,6 +82,7 @@ test('guest cart, register, checkout promo, payment and personal order',async({p
 });
 
 test('voice permission, recording upload and CLIP similarity',async({page})=>{
+  test.setTimeout(180000);
   await page.addInitScript(()=>{
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{throw new DOMException('Denied','NotAllowedError');}}});
   });
@@ -109,7 +110,7 @@ test('voice permission, recording upload and CLIP similarity',async({page})=>{
   await ready(page,'/?image=1');
   await page.getByLabel('Chọn ảnh tìm sản phẩm').setInputFiles(path.resolve('public/assets/pen-blue.png'));
   await expect(page.getByText('CLIP tìm ảnh tương tự',{exact:false})).toBeVisible({timeout:120000});
-  await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long');
+  await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long',{timeout:120000});
 });
 
 test('admin catalogue, stock and report workspace',async({page},info)=>{

@@ -27,7 +27,7 @@ else:
     try:
         with temporary_database() as dsn:
             marker.write_text(conninfo_to_dict(dsn)['dbname'],encoding='utf-8')
-            app=create_app({'DATABASE':dsn,'SECRET_KEY':'e2e-only','DEMO_MODE':True})
+            app=create_app({'DATABASE':dsn,'SECRET_KEY':'e2e-only','DEMO_MODE':True,'CATALOGUE_FIXTURES':True})
             app.run(host='0.0.0.0',port=5099,debug=False)
     finally:
         marker.unlink(missing_ok=True)

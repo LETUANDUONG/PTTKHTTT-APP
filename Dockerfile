@@ -18,6 +18,7 @@ RUN --mount=from=ghcr.io/astral-sh/uv:0.13.7,source=/uv,target=/bin/uv \
     UV_HTTP_TIMEOUT=120 uv pip install --system --index $PYPI_INDEX \
     --index-strategy unsafe-first-match -r requirements-ai.txt
 COPY backend/ backend/
+COPY data/ data/
 COPY scripts/ scripts/
 COPY tests/ tests/
 COPY run.py pytest.ini ./
