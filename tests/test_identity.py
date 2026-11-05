@@ -18,14 +18,14 @@ def test_profile_and_password(client):
     sign_in(client)
     assert call(client,'PATCH','/account',{'name':'New Name','phone':'0901234567'}).json['user']['name']=='New Name'
     assert call(client,'POST','/account/password',{'current_password':'wrong','password':'NewPassword123'}).status_code==403
-    assert call(client,'POST','/account/password',{'current_password':'Mosa@12345','password':'NewPassword123'}).status_code==200
+    assert call(client,'POST','/account/password',{'current_password':'Hoodoo@12345','password':'NewPassword123'}).status_code==200
     assert client.get('/api/session').json['user']
 
 
 def test_recovery_single_use_and_session_revocation(app,client):
     sign_in(client)
     other=app.test_client()
-    url=call(other,'POST','/auth/recovery',{'email':'customer@mosa.local'}).json['demo_reset_url']
+    url=call(other,'POST','/auth/recovery',{'email':'customer@hoodoo.local'}).json['demo_reset_url']
     data={'token':url.split('token=')[1],'password':'ResetSecure123'}
     assert call(other,'POST','/auth/reset',data).status_code==200
     assert client.get('/api/session').json['user'] is None
@@ -34,9 +34,9 @@ def test_recovery_single_use_and_session_revocation(app,client):
 
 
 def test_expired_token(app,client):
-    url=call(client,'POST','/auth/recovery',{'email':'customer@mosa.local'}).json['demo_reset_url']
+    url=call(client,'POST','/auth/recovery',{'email':'customer@hoodoo.local'}).json['demo_reset_url']
     with app.app_context():
-        get_db().execute('UPDATE reset_tokens SET expires=?',(time.time()-1,))
+        get_db().execute('UPDATE reset_tokens SET expires=%s',(time.time()-1,))
         get_db().commit()
     assert call(client,'POST','/auth/reset',{'token':url.split('token=')[1],'password':'ResetSecure123'}).status_code==400
 

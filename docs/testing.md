@@ -1,4 +1,4 @@
-# Kế hoạch kiểm thử tự động Mosa
+# Kế hoạch kiểm thử tự động Hoodoo
 
 ## 1. Quy trình bắt buộc
 Thiết kế bốn file docs trước coding. Mỗi feature hoàn thành phải chạy nhóm pytest tương ứng; chỉ tiếp tục sau pass. Cuối cùng chạy pytest toàn bộ, frontend build và Playwright E2E. Kết quả thực tế lưu docs/test-evidence.md; case chưa chạy phải ghi Not run, không suy ra Pass từ kế hoạch.
@@ -27,10 +27,10 @@ Sau khi chia folder theo `3-layer-diagram.vpp`, chạy thêm `tests/test_archite
 npm --prefix frontend run build
 npm --prefix frontend run test:e2e
 ```
-Tests dùng temporary SQLite, fixed seed, independent client và stable fixture; không xoá data runtime. E2E tạo database riêng bằng scripts/e2e_server.py, webServer setup/teardown tự động.
+Tests dùng PostgreSQL thật, database hoodoo_test_<uuid> riêng cho mỗi test, fixed seed, independent client và stable fixture; không xoá data runtime. Chạy ./test.ps1 để thiết lập môi trường Docker và kết nối trước các lệnh kiểm thử riêng. E2E tạo database riêng bằng scripts/e2e_server.py, webServer setup/teardown tự động.
 
 ## 4. Browser acceptance
-Desktop 1440px và mobile 390px: catalogue, filter, product details, cart, account registration, quote/promo, checkout demo pending/success, order timeline, staff workflow. Verify errors, empty results, keyboard labels, no horizontal document overflow. Screenshot lưu docs/evidence. Browser speech dùng test stub chỉ kiểm tra wiring/fallback, không claim đã nhận dạng microphone thật. Image rank test baseline dùng catalogue image/query fixture; không phải benchmark semantic AI.
+Desktop 1440px và mobile 390px: catalogue, filter, product details, cart, account registration, quote/promo, checkout demo pending/success, order timeline, staff workflow. Verify errors, empty results, keyboard labels, no horizontal document overflow. Screenshot lưu docs/evidence. Voice E2E mô phỏng quyền micro và MediaRecorder, kiểm tra upload multipart và dùng transcript giả để xác minh UI; đây không phải kiểm thử micro thật. Backend kiểm tra audio hỏng, quá dài/quá lớn/quá ngắn, im lặng và VAD Whisper thật với tín hiệu không phải giọng nói. CLIP test dùng ảnh catalogue và ảnh xoay/đổi sáng/JPEG, kiểm tra lọc, cache và model thiếu. Kiểm thử micro người dùng và chất lượng nhận dạng thực tế ghi riêng trong test-evidence.md.
 
 ## 5. Không thể chứng nhận bằng suite local
 Provider thật, email thực, speech recognition dịch vụ, AI relevance dataset, 99.5% uptime, TLS, mã hoá ổ đĩa, production load profile và RPO/RTO chưa xác định. Ghi giới hạn rõ ở evidence và README. Không tự thêm hoàn tiền tự động.

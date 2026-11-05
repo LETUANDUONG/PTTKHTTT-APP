@@ -6,6 +6,8 @@ __pycache__/
 *.pyc
 *.sqlite*
 .env
+backups/
+models/
 frontend/node_modules/
 frontend/dist/
 frontend/test-results/

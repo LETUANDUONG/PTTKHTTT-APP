@@ -3,6 +3,7 @@ from backend.data_infrastructure.indexes import keyword_index, vector_index
 from backend.data_infrastructure.storage.image_storage import image_path
 
 from .catalogue_service import published_products
+from backend.data_infrastructure.adapters.speech_transcription_adapter import transcribe
 
 
 def catalogue(args,paginate=True):
@@ -17,4 +18,8 @@ def image_search(raw,args):
         if path:
             candidates.append((product,encode_catalogue(path)))
     items=vector_index.rank(query,candidates)
-    return {'items':items[:8],'total':len(items),'page':1,'pages':1,'method':'So khớp màu và bố cục; không đảm bảo đúng loại sản phẩm. Ảnh không được lưu.'}
+    return {'items':items[:8],'total':len(items),'page':1,'pages':1,'method':'CLIP tìm ảnh tương tự trên máy local; không đảm bảo đúng mã sản phẩm. Ảnh không được lưu.'}
+
+
+def voice_search(raw):
+    return transcribe(raw)

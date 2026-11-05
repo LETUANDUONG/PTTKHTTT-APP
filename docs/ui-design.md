@@ -1,13 +1,13 @@
-# Thiết kế giao diện Mosa
+# Thiết kế giao diện Hoodoo
 
 ## 1. Hướng hình ảnh
-Tham khảo https://adcbook.net.vn/: header tìm kiếm lớn, menu danh mục bên trái, banner ngang, dải tiện ích, product grid và giá VND nổi bật. Dùng thương hiệu Mosa từ tài liệu, không giả mạo ADCBook. Một storefront văn phòng phẩm nhiều sản phẩm, không biến thành landing page SaaS.
+Tham khảo https://adcbook.net.vn/: header tìm kiếm lớn, menu danh mục bên trái, banner ngang, dải tiện ích, product grid và giá VND nổi bật. Dùng thương hiệu dự án Hoodoo, không giả mạo ADCBook. Một storefront văn phòng phẩm nhiều sản phẩm, không biến thành landing page SaaS.
 
-Palette: đỏ thương mại #c92232, đỏ đậm #a71928, nền #f5f6f8, giấy trắng #ffffff, chữ #252b36, xanh thông tin #176b59. Typography Segoe UI / Arial hỗ trợ tiếng Việt, body 15px, heading 24–34px, giá bold 19px. Nội dung căn trái; nút 44px; radius 6px cho form và 10px cho banner, card viền nhẹ không đổ shadow đồng loạt.
+Palette tham khảo [STHM](https://sthm.vn/): be #f4e8d0, xanh rêu #455c0c, nền kem #f8f4ea, bề mặt #fffcf5, chữ #353b2a, viền #ded7c6. Nút, logo, giá và trạng thái chọn dùng xanh rêu; header, footer và hero dùng be. Màu đỏ chỉ dành cho lỗi/cảnh báo thất bại. Typography Be Vietnam Pro, fallback Segoe UI / Arial hỗ trợ tiếng Việt. Giữ nguyên bố cục, kích thước và responsive hiện tại.
 
 ```text
 [tiện ích / chính sách demo]
-[mosa] [tìm kiếm........ mic ảnh] [tài khoản] [đơn] [giỏ]
+[hoodoo] [tìm kiếm........ mic ảnh] [tài khoản] [đơn] [giỏ]
 [danh mục] [trang chủ] [sản phẩm] [ưu đãi] [hỗ trợ]
 [category rail] [banner giấy bút tập vở] [ưu đãi nhỏ]
 [giao hàng] [đơn vị rõ ràng] [hỗ trợ] [kiểm tra tồn kho]

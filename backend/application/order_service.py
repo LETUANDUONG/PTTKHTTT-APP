@@ -1,3 +1,4 @@
+from backend.data_infrastructure.database.connection import lock_workflow
 from .payment_service import create_payment
 from .order_records import history, order_detail, own_order, safe_order
 from .audit_service import audit
@@ -31,8 +32,8 @@ def place_order(*, data, user, owner, config, headers):
     key = text(headers.get('Idempotency-Key'), 'Mã yêu cầu', 8, 100)
     digest = hashlib.sha256(json.dumps(d, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
-    existing = one('SELECT * FROM orders WHERE user_id=? AND idem_key=?', (user['id'], key))
+    lock_workflow()
+    existing = one('SELECT * FROM orders WHERE user_id=%s AND idem_key=%s', (user['id'], key))
     if existing:
         require(existing['request_hash'] == digest, 'Mã yêu cầu đã dùng cho nội dung khác.', 409)
         db.commit()
@@ -43,20 +44,20 @@ def place_order(*, data, user, owner, config, headers):
     for line in q['items']:
         require(line['published'] and line['available'] >= line['quantity'], f"{line['name']}: không đủ tồn kho.", 409)
     status = 'confirmed' if method == 'cod' else 'pending'
-    cur = db.execute('INSERT INTO orders(user_id,idem_key,request_hash,recipient,phone,address,subtotal,discount,shipping,total,promo,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)', (user['id'], key, digest, recipient, phone, address, q['subtotal'], q['discount'], q['shipping'], q['total'], q['promo'], status, now()))
-    oid = cur.lastrowid
+    cur = db.execute('INSERT INTO orders(user_id,idem_key,request_hash,recipient,phone,address,subtotal,discount,shipping,total,promo,status,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id', (user['id'], key, digest, recipient, phone, address, q['subtotal'], q['discount'], q['shipping'], q['total'], q['promo'], status, now()))
+    oid = cur.fetchone()['id']
     for p in q['items']:
-        db.execute('INSERT INTO order_items(order_id,product_id,name,selling_unit,pack_quantity,quantity,price) VALUES(?,?,?,?,?,?,?)', (oid, p['id'], p['name'], p['selling_unit'], p['pack_quantity'], p['quantity'], p['price']))
+        db.execute('INSERT INTO order_items(order_id,product_id,name,selling_unit,pack_quantity,quantity,price) VALUES(%s,%s,%s,%s,%s,%s,%s)', (oid, p['id'], p['name'], p['selling_unit'], p['pack_quantity'], p['quantity'], p['price']))
     reserve(oid, user['id'])
     create_payment(oid, method, q['total'])
     history(oid, status, user['id'])
-    db.execute('DELETE FROM cart_items WHERE owner=?', (owner,))
+    db.execute('DELETE FROM cart_items WHERE owner=%s', (owner,))
     db.commit()
     return (order_detail(oid), 201)
 
 
 def orders(*, user):
-    return [order_detail(o['id']) for o in rows('SELECT id FROM orders WHERE user_id=? ORDER BY id DESC', (user['id'],))]
+    return [order_detail(o['id']) for o in rows('SELECT id FROM orders WHERE user_id=%s ORDER BY id DESC', (user['id'],))]
 
 
 def get_order(oid, *, user):
@@ -66,26 +67,26 @@ def get_order(oid, *, user):
 
 def cancel_order(oid, *, user):
     db = get_db()
-    db.execute('BEGIN IMMEDIATE')
+    lock_workflow()
     o = own_order(oid, user=user)
-    p = one('SELECT * FROM payments WHERE order_id=?', (oid,))
+    p = one('SELECT * FROM payments WHERE order_id=%s', (oid,))
     require(o['status'] in ['pending', 'confirmed', 'payment_failed'], 'Đơn đã được xử lý, hãy tạo yêu cầu hỗ trợ.', 409)
     require(p['status'] not in ['success', 'collected'], 'Đơn đã thanh toán cần nhân viên xử lý hoàn tiền.', 409)
     if o['status'] != 'payment_failed':
         release(oid, user['id'])
-    db.execute("UPDATE orders SET status='cancelled' WHERE id=?", (oid,))
-    db.execute("UPDATE payments SET status='cancelled' WHERE order_id=?", (oid,))
+    db.execute("UPDATE orders SET status='cancelled' WHERE id=%s", (oid,))
+    db.execute("UPDATE payments SET status='cancelled' WHERE order_id=%s", (oid,))
     history(oid, 'cancelled', user['id'])
     db.commit()
     return order_detail(oid)
 
 
 def notifications(*, user):
-    return rows('SELECT * FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 100', (user['id'],))
+    return rows('SELECT * FROM notifications WHERE user_id=%s ORDER BY id DESC LIMIT 100', (user['id'],))
 
 
 def list_support(*, user):
-    return rows('SELECT * FROM service_cases WHERE user_id=? ORDER BY id DESC', (user['id'],))
+    return rows('SELECT * FROM service_cases WHERE user_id=%s ORDER BY id DESC', (user['id'],))
 
 
 def create_support(*, data, user):
@@ -93,21 +94,21 @@ def create_support(*, data, user):
     oid = d.get('order_id')
     if oid is not None:
         integer(oid, 'Đơn hàng')
-        require(one('SELECT id FROM orders WHERE id=? AND user_id=?', (oid, user['id'])), 'Không có đơn hàng.', 404)
+        require(one('SELECT id FROM orders WHERE id=%s AND user_id=%s', (oid, user['id'])), 'Không có đơn hàng.', 404)
     db = get_db()
-    cid = db.execute('INSERT INTO service_cases(user_id,order_id,subject,message,created_at) VALUES(?,?,?,?,?)', (user['id'], oid, text(d.get('subject'), 'Chủ đề', 3, 120), text(d.get('message'), 'Nội dung', 5, 2000), now())).lastrowid
+    cid = db.execute('INSERT INTO service_cases(user_id,order_id,subject,message,created_at) VALUES(%s,%s,%s,%s,%s) RETURNING id', (user['id'], oid, text(d.get('subject'), 'Chủ đề', 3, 120), text(d.get('message'), 'Nội dung', 5, 2000), now())).fetchone()['id']
     audit(user['id'], 'support.create', cid)
     db.commit()
-    return (one('SELECT * FROM service_cases WHERE id=?', (cid,)), 201)
+    return (one('SELECT * FROM service_cases WHERE id=%s', (cid,)), 201)
 
 
 def resolve_case(cid, *, data, user):
     d = data
     require(d.get('status') in ['open', 'in_progress', 'closed'], 'Trạng thái không hợp lệ.')
-    require(one('SELECT id FROM service_cases WHERE id=?', (cid,)), 'Không có yêu cầu hỗ trợ.', 404)
+    require(one('SELECT id FROM service_cases WHERE id=%s', (cid,)), 'Không có yêu cầu hỗ trợ.', 404)
     reply = text(d.get('reply'), 'Phản hồi', 3, 2000)
     db = get_db()
-    db.execute('UPDATE service_cases SET status=?,reply=? WHERE id=?', (d['status'], reply, cid))
+    db.execute('UPDATE service_cases SET status=%s,reply=%s WHERE id=%s', (d['status'], reply, cid))
     audit(user['id'], 'support.' + d['status'], cid)
     db.commit()
     return {'ok': True}
@@ -119,13 +120,13 @@ def exception(*, data, user):
     pid = d.get('product_id')
     if oid is not None:
         integer(oid, 'Đơn hàng')
-        require(one('SELECT id FROM orders WHERE id=?', (oid,)), 'Không có đơn hàng.', 404)
+        require(one('SELECT id FROM orders WHERE id=%s', (oid,)), 'Không có đơn hàng.', 404)
     if pid is not None:
         integer(pid, 'Sản phẩm')
-        require(one('SELECT id FROM products WHERE id=?', (pid,)), 'Không có sản phẩm.', 404)
+        require(one('SELECT id FROM products WHERE id=%s', (pid,)), 'Không có sản phẩm.', 404)
     require(oid is not None or pid is not None, 'Cần chọn đơn hàng hoặc sản phẩm.')
     db = get_db()
-    cid = db.execute("INSERT INTO service_cases(order_id,product_id,subject,message,reply,created_at) VALUES(?,?,'Ngoại lệ vận hành',?,?,?)", (oid, pid, text(d.get('reason'), 'Lý do', 3, 1000), text(d.get('follow_up'), 'Hướng xử lý', 3, 1000), now())).lastrowid
+    cid = db.execute("INSERT INTO service_cases(order_id,product_id,subject,message,reply,created_at) VALUES(%s,%s,'Ngoại lệ vận hành',%s,%s,%s) RETURNING id", (oid, pid, text(d.get('reason'), 'Lý do', 3, 1000), text(d.get('follow_up'), 'Hướng xử lý', 3, 1000), now())).fetchone()['id']
     audit(user['id'], 'exception.create', cid)
     db.commit()
     return {'id': cid}

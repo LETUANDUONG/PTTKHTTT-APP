@@ -1,11 +1,9 @@
-"""Linear descriptor comparison for the local demo catalogue."""
-import math
+"""Cosine similarity over normalized CLIP vectors for the small catalogue."""
 
 
 def rank(query,candidates):
     results=[]
     for product,vector in candidates:
-        distance=math.sqrt(sum((a-b)**2 for a,b in zip(query,vector))/len(query))
-        if distance<0.32:
-            results.append({**product,'similarity':round(1-distance,4)})
+        similarity=sum(a*b for a,b in zip(query,vector))
+        results.append({**product,'similarity':round(max(-1,min(1,similarity)),4)})
     return sorted(results,key=lambda p:p['similarity'],reverse=True)

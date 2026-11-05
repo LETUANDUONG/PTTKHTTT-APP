@@ -9,15 +9,16 @@ async function ready(page,url='/'){
 }
 async function login(page,role='customer'){
   await ready(page,'/login');
-  await page.getByLabel('Email',{exact:true}).fill(role+'@mosa.local');
-  await page.getByLabel('Mật khẩu',{exact:true}).fill('Mosa@12345');
+  await page.getByLabel('Email',{exact:true}).fill(role+'@hoodoo.local');
+  await page.getByLabel('Mật khẩu',{exact:true}).fill('Hoodoo@12345');
   await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Tài khoản của bạn'})).toBeVisible();
 }
 async function overflow(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBeTruthy();}
 
 async function screenshot(page,file){
-  await page.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=500){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,30));}window.scrollTo(0,0);await Promise.all(Array.from(document.images).map(i=>i.decode().catch(()=>{})));});
+  await page.locator('img').evaluateAll(images=>images.forEach(image=>{image.loading='eager';}));
+  await expect.poll(()=>page.locator('img').evaluateAll(images=>images.every(image=>image.complete&&image.naturalWidth>0)),{timeout:10000}).toBe(true);
   await page.screenshot({path:file,fullPage:true});
 }
 
@@ -65,7 +66,7 @@ test('guest cart, register, checkout promo, payment and personal order',async({p
   await page.getByLabel('Mã giảm giá',{exact:true}).fill('BADCODE');
   await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('Mã giảm giá không hợp lệ');
-  await page.getByLabel('Mã giảm giá',{exact:true}).fill('MOSA10');
+  await page.getByLabel('Mã giảm giá',{exact:true}).fill('HOODOO10');
   await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
   await expect(page.locator('.summary-total')).toContainText('105.100');
   await page.getByLabel('Thanh toán trực tuyến mô phỏng',{exact:false}).check();
@@ -73,25 +74,43 @@ test('guest cart, register, checkout promo, payment and personal order',async({p
   await page.getByRole('button',{name:'Xác nhận đặt hàng',exact:true}).click();
   await expect(page.getByText('MÔ PHỎNG THANH TOÁN',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Ghi nhận kết quả mô phỏng',exact:true}).click();
-  await expect(page.getByRole('heading',{name:/Đơn hàng MOSA-/})).toBeVisible();
+  await expect(page.getByRole('heading',{name:/Đơn hàng HOODOO-/})).toBeVisible();
   await expect(page.locator('.status.success')).toContainText('Đã thanh toán');
   await expect(page.getByText('Chưa có vận đơn.',{exact:false})).toBeVisible();
   await overflow(page);
   await page.screenshot({path:path.resolve('../docs/evidence/'+info.project.name+'-order.png'),fullPage:true});
 });
 
-test('voice fallback, mocked transcript and image similarity',async({page})=>{
-  await page.addInitScript(()=>{window.SpeechRecognition=undefined;window.webkitSpeechRecognition=undefined;});
+test('voice permission, recording upload and CLIP similarity',async({page})=>{
+  test.setTimeout(180000);
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{throw new DOMException('Denied','NotAllowedError');}}});
+  });
   await ready(page);
   await page.getByRole('button',{name:'Tìm bằng giọng nói'}).click();
-  await expect(page.getByText('Trình duyệt chưa hỗ trợ giọng nói.',{exact:false})).toBeVisible();
-  await page.evaluate(()=>{window.SpeechRecognition=class {start(){this.onresult({results:[[{transcript:'bút xanh'}]]});this.onend();}abort(){}};});
+  await expect(page.getByText('Bạn chưa cho phép micro.',{exact:false})).toBeVisible();
+  await page.evaluate(()=>{
+    navigator.mediaDevices.getUserMedia=async()=>({getTracks:()=>[{stop(){}}]});
+    window.MediaRecorder=class {
+      static isTypeSupported(){return true;}
+      constructor(){this.state='inactive';this.mimeType='audio/webm';}
+      start(){this.state='recording';}
+      stop(){this.state='inactive';this.ondataavailable({data:new Blob(['test recording'])});this.onstop();}
+    };
+  });
+  let audioUploaded=false;
+  await page.route('**/api/search/voice',async route=>{
+    audioUploaded=route.request().headers()['content-type'].includes('multipart/form-data')&&route.request().postData().includes('name="audio"');
+    await route.fulfill({json:{text:'bút xanh',language:'vi',model:'faster-whisper-small'}});
+  });
   await page.getByRole('button',{name:'Tìm bằng giọng nói'}).click();
+  await page.getByRole('button',{name:'Dừng ghi âm'}).click();
   await expect(page.getByRole('heading',{name:'Kết quả cho “bút xanh”'})).toBeVisible();
+  expect(audioUploaded).toBeTruthy();
   await ready(page,'/?image=1');
   await page.getByLabel('Chọn ảnh tìm sản phẩm').setInputFiles(path.resolve('public/assets/pen-blue.png'));
-  await expect(page.getByText('So khớp màu và bố cục;',{exact:false})).toBeVisible();
-  await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long');
+  await expect(page.getByText('CLIP tìm ảnh tương tự',{exact:false})).toBeVisible({timeout:120000});
+  await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long',{timeout:120000});
 });
 
 test('admin catalogue, stock and report workspace',async({page},info)=>{
@@ -115,7 +134,7 @@ test('admin catalogue, stock and report workspace',async({page},info)=>{
   await page.screenshot({path:path.resolve('../docs/evidence/'+info.project.name+'-staff.png'),fullPage:true});
   const download=page.waitForEvent('download');
   await page.getByRole('link',{name:'Tải CSV',exact:true}).click();
-  expect((await download).suggestedFilename()).toBe('mosa-report.csv');
+  expect((await download).suggestedFilename()).toBe('hoodoo-report.csv');
 });
 
 test('warehouse role controls and support enquiry',async({page})=>{
