@@ -27,7 +27,7 @@ docker compose stop
 docker compose up -d --wait
 ```
 
-Database PostgreSQL mới được seed 200 sản phẩm ADCBook và tài khoản demo. Dữ liệu là ảnh chụp tại thời điểm thu thập; giá và tồn kho có thể thay đổi trên trang nguồn. Trong snapshot hiện tại có 15 sản phẩm được nguồn báo còn hàng. File SQLite cũ `instance/hoodoo.sqlite` được giữ nguyên, không tự import vào PostgreSQL.
+Database PostgreSQL mới được seed 200 sản phẩm ADCBook và tài khoản demo. Dữ liệu là ảnh chụp tại thời điểm thu thập; giá và tồn kho có thể thay đổi trên trang nguồn. Snapshot chỉ có 15 sản phẩm được nguồn báo còn hàng. Với `DEMO_MODE=1`, tồn kho khởi tạo được nâng tối thiểu 20 đơn vị mỗi sản phẩm để thử mua hàng; đây là tồn kho mô phỏng, không phản ánh nguồn. File SQLite cũ `instance/hoodoo.sqlite` được giữ nguyên, không tự import vào PostgreSQL.
 
 ## Model tìm kiếm local
 
@@ -167,6 +167,12 @@ Tham khảo kỹ thuật: [Flask testing](https://flask.palletsprojects.com/en/s
 ## Catalogue ADCBook
 
 Snapshot 200 sản phẩm nằm ở `data/adcbook.json`; ảnh được lưu tại `frontend/public/assets/adcbook/` để app và CLIP chạy local. ID và đường dẫn nguồn được lưu trong thuộc tính sản phẩm. Dữ liệu được lấy ngày 05/11/2026, chia theo sáu danh mục; giá/tồn chỉ là snapshot, không đồng bộ thời gian thực. Sản phẩm demo cũ được ẩn để giữ tham chiếu lịch sử.
+
+Với database demo đã tạo trước thay đổi này, chạy một lần để mọi sản phẩm ADCBook đang bán có ít nhất 20 đơn vị **khả dụng**. Lệnh không đổi file snapshot và ghi lịch sử biến động kho; chạy lại khi đã đủ hàng sẽ không nhập thêm.
+
+```powershell
+docker compose run --rm --no-deps app python -m scripts.top_up_demo_stock
+```
 
 Cập nhật snapshot (cần mạng, không tự động đồng bộ tồn kho đã nhập):
 

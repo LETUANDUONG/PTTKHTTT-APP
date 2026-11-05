@@ -62,8 +62,8 @@ def init_db(dsn, demo=True, fixtures=False):
                     db.execute('INSERT INTO products(category_id,name,description,brand,price,selling_unit,pack_quantity,attributes,image,published,stock) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,1,%s)',
                                (cat,name,f'{name}. Dụng cụ chất lượng cho học tập và công việc. Kiểm tra đơn vị bán và thông số trước khi chọn mua.',brand,price,unit,pack,json.dumps(attrs,ensure_ascii=False),f'/assets/{image}.png',stock))
             else:
-                from backend.data_infrastructure.database.adcbook import seed_adcbook
-                seed_adcbook(db)
+                from backend.data_infrastructure.database.adcbook import DEMO_MIN_AVAILABLE, seed_adcbook
+                seed_adcbook(db, minimum_stock=DEMO_MIN_AVAILABLE if demo else 0)
             db.execute("INSERT INTO promotions(code,percent,minimum,starts_at,ends_at) VALUES('HOODOO10',10,50000,'2020-01-01T00:00:00+00:00','2035-12-31T23:59:59+00:00')")
         if demo and not db.execute('SELECT 1 FROM users').fetchone():
             password = generate_password_hash('Hoodoo@12345')
