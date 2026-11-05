@@ -109,3 +109,25 @@ def test_missing_clip_model_is_actionable(client,monkeypatch,tmp_path):
     response=client.post('/api/search/image',data={'image':(io.BytesIO(image.getvalue()),'image.png')},headers={'X-CSRF-Token':token})
     assert response.status_code==503,response.json
     assert 'model' in response.json['error']
+
+
+def test_adcbook_snapshot_import_is_idempotent(app):
+    from backend.data_infrastructure.database.adcbook import seed_adcbook
+    with app.app_context():
+        db=get_db()
+        seed_adcbook(db)
+        seed_adcbook(db)
+        result=db.execute("SELECT COUNT(*) AS count FROM products WHERE attributes::jsonb ? 'source_id'").fetchone()
+        assert result['count']==200
+        assert db.execute("SELECT COUNT(DISTINCT attributes::jsonb->>'source_id') AS count FROM products WHERE attributes::jsonb ? 'source_id'").fetchone()['count']==200
+        db.rollback()
+
+
+def test_fresh_database_uses_adcbook_snapshot():
+    from backend.app import create_app
+    from scripts.testing_database import temporary_database
+    with temporary_database() as dsn:
+        app=create_app({'DATABASE':dsn,'DEMO_MODE':False})
+        with app.app_context():
+            db=get_db()
+            assert db.execute('SELECT COUNT(*) AS count FROM products WHERE published=1').fetchone()['count']==200

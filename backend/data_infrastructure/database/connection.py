@@ -36,30 +36,34 @@ def lock_workflow():
     get_db().execute('SELECT pg_advisory_xact_lock(726031)')
 
 
-def init_db(dsn, demo=True):
+def init_db(dsn, demo=True, fixtures=False):
     with connect(dsn) as db:
         db.execute('SELECT pg_advisory_xact_lock(726031)')
         db.execute(Path(__file__).with_name('schema.sql').read_text(encoding='utf-8'))
         if not db.execute('SELECT 1 FROM categories').fetchone():
             names = ['Bút viết', 'Sổ & tập vở', 'Giấy in', 'Dụng cụ học tập', 'Hồ sơ văn phòng', 'Màu & mỹ thuật']
             db.cursor().executemany('INSERT INTO categories(name) VALUES(%s)', [(n,) for n in names])
-            catalogue = [
-                (1,'Bút gel Thiên Long FlexOffice 0.5mm', 'Thiên Long',12000,'Cây',1, {'màu':'xanh','ngòi':'0.5mm'},'pen-blue',90),
-                (2,'Sổ tay lò xo Pastel A5 120 trang','Hoodoo',45000,'Quyển',1,{'khổ':'A5','trang':'120'},'notebook',55),
-                (3,'Giấy in Double A A4 80gsm','Double A',89000,'Ram',500,{'khổ':'A4','định lượng':'80gsm'},'paper',80),
-                (4,'Bộ thước học sinh 4 món','Deli',25000,'Bộ',4,{'màu':'xanh'},'ruler',65),
-                (5,'Bìa còng văn phòng A4 7cm','Deli',58000,'Chiếc',1,{'khổ':'A4','màu':'xanh'},'folder',40),
-                (6,'Bút chì màu Colokit 24 màu','Thiên Long',69000,'Hộp',24,{'màu':'24 màu'},'colors',35),
-                (1,'Hộp 12 bút gel xanh 0.5mm','Thiên Long',125000,'Hộp',12,{'màu':'xanh','ngòi':'0.5mm'},'pen-box',20),
-                (2,'Tập học sinh 96 trang ô ly','Hồng Hà',15000,'Quyển',1,{'trang':'96','khổ':'B5'},'exercise',120),
-                (4,'Kéo thủ công an toàn 135mm','Deli',22000,'Chiếc',1,{'màu':'hồng'},'scissors',28),
-                (4,'Băng keo giấy trang trí Pastel','Hoodoo',18000,'Cuộn',1,{'màu':'hồng'},'tape',45),
-                (5,'Kẹp giấy màu hộp 50 chiếc','Deli',16000,'Hộp',50,{'màu':'nhiều màu'},'clips',70),
-                (6,'Màu nước sáng tạo 12 màu','Colokit',72000,'Hộp',12,{'màu':'12 màu'},'paint',30),
-            ]
-            for cat,name,brand,price,unit,pack,attrs,image,stock in catalogue:
-                db.execute('INSERT INTO products(category_id,name,description,brand,price,selling_unit,pack_quantity,attributes,image,published,stock) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,1,%s)',
-                           (cat,name,f'{name}. Dụng cụ chất lượng cho học tập và công việc. Kiểm tra đơn vị bán và thông số trước khi chọn mua.',brand,price,unit,pack,json.dumps(attrs,ensure_ascii=False),f'/assets/{image}.png',stock))
+            if fixtures:
+                catalogue = [
+                    (1,'Bút gel Thiên Long FlexOffice 0.5mm', 'Thiên Long',12000,'Cây',1, {'màu':'xanh','ngòi':'0.5mm'},'pen-blue',90),
+                    (2,'Sổ tay lò xo Pastel A5 120 trang','Hoodoo',45000,'Quyển',1,{'khổ':'A5','trang':'120'},'notebook',55),
+                    (3,'Giấy in Double A A4 80gsm','Double A',89000,'Ram',500,{'khổ':'A4','định lượng':'80gsm'},'paper',80),
+                    (4,'Bộ thước học sinh 4 món','Deli',25000,'Bộ',4,{'màu':'xanh'},'ruler',65),
+                    (5,'Bìa còng văn phòng A4 7cm','Deli',58000,'Chiếc',1,{'khổ':'A4','màu':'xanh'},'folder',40),
+                    (6,'Bút chì màu Colokit 24 màu','Thiên Long',69000,'Hộp',24,{'màu':'24 màu'},'colors',35),
+                    (1,'Hộp 12 bút gel xanh 0.5mm','Thiên Long',125000,'Hộp',12,{'màu':'xanh','ngòi':'0.5mm'},'pen-box',20),
+                    (2,'Tập học sinh 96 trang ô ly','Hồng Hà',15000,'Quyển',1,{'trang':'96','khổ':'B5'},'exercise',120),
+                    (4,'Kéo thủ công an toàn 135mm','Deli',22000,'Chiếc',1,{'màu':'hồng'},'scissors',28),
+                    (4,'Băng keo giấy trang trí Pastel','Hoodoo',18000,'Cuộn',1,{'màu':'hồng'},'tape',45),
+                    (5,'Kẹp giấy màu hộp 50 chiếc','Deli',16000,'Hộp',50,{'màu':'nhiều màu'},'clips',70),
+                    (6,'Màu nước sáng tạo 12 màu','Colokit',72000,'Hộp',12,{'màu':'12 màu'},'paint',30),
+                ]
+                for cat,name,brand,price,unit,pack,attrs,image,stock in catalogue:
+                    db.execute('INSERT INTO products(category_id,name,description,brand,price,selling_unit,pack_quantity,attributes,image,published,stock) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,1,%s)',
+                               (cat,name,f'{name}. Dụng cụ chất lượng cho học tập và công việc. Kiểm tra đơn vị bán và thông số trước khi chọn mua.',brand,price,unit,pack,json.dumps(attrs,ensure_ascii=False),f'/assets/{image}.png',stock))
+            else:
+                from backend.data_infrastructure.database.adcbook import seed_adcbook
+                seed_adcbook(db)
             db.execute("INSERT INTO promotions(code,percent,minimum,starts_at,ends_at) VALUES('HOODOO10',10,50000,'2020-01-01T00:00:00+00:00','2035-12-31T23:59:59+00:00')")
         if demo and not db.execute('SELECT 1 FROM users').fetchone():
             password = generate_password_hash('Hoodoo@12345')

@@ -185,12 +185,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2578,
+                  "duration": 1967,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:10.452Z",
+                  "startTime": "2026-11-05T05:19:24.960Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -219,12 +219,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2427,
+                  "duration": 2480,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:13.575Z",
+                  "startTime": "2026-11-05T05:19:27.433Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -239,11 +239,11 @@
         },
         {
           "title": "voice permission, recording upload and CLIP similarity",
-          "ok": false,
+          "ok": true,
           "tags": [],
           "tests": [
             {
-              "timeout": 45000,
+              "timeout": 180000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "desktop",
@@ -252,58 +252,18 @@
                 {
                   "workerIndex": 0,
                   "parallelIndex": 0,
-                  "status": "failed",
-                  "duration": 6926,
-                  "error": {
-                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.product-name').first()\nExpected substring: \u001b[32m\"Bút gel Thiên Long\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" locator('.product-name').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.product-name').first()\u001b[22m\n",
-                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.product-name').first()\nExpected substring: \u001b[32m\"Bút gel Thiên Long\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" locator('.product-name').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.product-name').first()\u001b[22m\n\n    at C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\e2e\\store.spec.js:112:55",
-                    "location": {
-                      "file": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\e2e\\store.spec.js",
-                      "column": 55,
-                      "line": 112
-                    },
-                    "snippet": "  110 |   await page.getByLabel('Chọn ảnh tìm sản phẩm').setInputFiles(path.resolve('public/assets/pen-blue.png'));\n  111 |   await expect(page.getByText('CLIP tìm ảnh tương tự',{exact:false})).toBeVisible({timeout:120000});\n> 112 |   await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long');\n      |                                                       ^\n  113 | });\n  114 |\n  115 | test('admin catalogue, stock and report workspace',async({page},info)=>{"
-                  },
-                  "errors": [
-                    {
-                      "location": {
-                        "file": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\e2e\\store.spec.js",
-                        "column": 55,
-                        "line": 112
-                      },
-                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.product-name').first()\nExpected substring: \u001b[32m\"Bút gel Thiên Long\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" locator('.product-name').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.product-name').first()\u001b[22m\n\n\n  110 |   await page.getByLabel('Chọn ảnh tìm sản phẩm').setInputFiles(path.resolve('public/assets/pen-blue.png'));\n  111 |   await expect(page.getByText('CLIP tìm ảnh tương tự',{exact:false})).toBeVisible({timeout:120000});\n> 112 |   await expect(page.locator('.product-name').first()).toContainText('Bút gel Thiên Long');\n      |                                                       ^\n  113 | });\n  114 |\n  115 | test('admin catalogue, stock and report workspace',async({page},info)=>{\n    at C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\e2e\\store.spec.js:112:55"
-                    }
-                  ],
+                  "status": "passed",
+                  "duration": 21235,
+                  "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:16.014Z",
+                  "startTime": "2026-11-05T05:19:29.923Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "screenshot",
-                      "contentType": "image/png",
-                      "path": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\test-results\\store-voice-permission-recording-upload-and-CLIP-similarity-desktop\\test-failed-1.png"
-                    },
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\test-results\\store-voice-permission-recording-upload-and-CLIP-similarity-desktop\\error-context.md"
-                    },
-                    {
-                      "name": "trace",
-                      "contentType": "application/zip",
-                      "path": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\test-results\\store-voice-permission-recording-upload-and-CLIP-similarity-desktop\\trace.zip"
-                    }
-                  ],
-                  "errorLocation": {
-                    "file": "C:\\Users\\ADMIN\\Documents\\NT02-ISAD\\BTnhom\\PTTKHTTT-APP\\frontend\\e2e\\store.spec.js",
-                    "column": 55,
-                    "line": 112
-                  }
+                  "attachments": []
                 }
               ],
-              "status": "unexpected"
+              "status": "expected"
             }
           ],
           "id": "040dc16dee2cfa236583-ccf41789fbfa24f077f7",
@@ -324,15 +284,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 1,
+                  "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3327,
+                  "duration": 2023,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:24.204Z",
+                  "startTime": "2026-11-05T05:19:51.168Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -342,7 +302,7 @@
           ],
           "id": "040dc16dee2cfa236583-ee1d8137ca8684eda70e",
           "file": "store.spec.js",
-          "line": 115,
+          "line": 116,
           "column": 1
         },
         {
@@ -358,15 +318,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 1,
+                  "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2300,
+                  "duration": 1409,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:27.902Z",
+                  "startTime": "2026-11-05T05:19:53.203Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -376,7 +336,7 @@
           ],
           "id": "040dc16dee2cfa236583-776b3a754e33156aba93",
           "file": "store.spec.js",
-          "line": 139,
+          "line": 140,
           "column": 1
         },
         {
@@ -392,15 +352,15 @@
               "projectName": "mobile",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2356,
+                  "duration": 2271,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:31.126Z",
+                  "startTime": "2026-11-05T05:19:55.722Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -426,15 +386,15 @@
               "projectName": "mobile",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3108,
+                  "duration": 2450,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:33.827Z",
+                  "startTime": "2026-11-05T05:19:58.323Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -453,22 +413,22 @@
           "tags": [],
           "tests": [
             {
-              "timeout": 45000,
+              "timeout": 180000,
               "annotations": [],
               "expectedStatus": "passed",
               "projectId": "mobile",
               "projectName": "mobile",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3733,
+                  "duration": 1524,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:36.945Z",
+                  "startTime": "2026-11-05T05:20:00.785Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -494,15 +454,15 @@
               "projectName": "mobile",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2265,
+                  "duration": 2111,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:40.690Z",
+                  "startTime": "2026-11-05T05:20:02.325Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -512,7 +472,7 @@
           ],
           "id": "040dc16dee2cfa236583-436d60a21349a843ef99",
           "file": "store.spec.js",
-          "line": 115,
+          "line": 116,
           "column": 1
         },
         {
@@ -528,15 +488,15 @@
               "projectName": "mobile",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1380,
+                  "duration": 1516,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-05T03:54:42.965Z",
+                  "startTime": "2026-11-05T05:20:04.446Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -546,7 +506,7 @@
           ],
           "id": "040dc16dee2cfa236583-b4958ceee645ea57df9d",
           "file": "store.spec.js",
-          "line": 139,
+          "line": 140,
           "column": 1
         }
       ]
@@ -554,11 +514,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-05T03:54:06.827Z",
-    "duration": 40627.253000000004,
-    "expected": 9,
+    "startTime": "2026-11-05T05:19:21.239Z",
+    "duration": 48251.429,
+    "expected": 10,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }

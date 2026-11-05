@@ -27,7 +27,7 @@ docker compose stop
 docker compose up -d --wait
 ```
 
-Database PostgreSQL mới được seed catalogue và tài khoản demo. File SQLite cũ `instance/hoodoo.sqlite` được giữ nguyên, không tự import vào PostgreSQL.
+Database PostgreSQL mới được seed 200 sản phẩm ADCBook và tài khoản demo. Dữ liệu là ảnh chụp tại thời điểm thu thập; giá và tồn kho có thể thay đổi trên trang nguồn. Trong snapshot hiện tại có 15 sản phẩm được nguồn báo còn hàng. File SQLite cũ `instance/hoodoo.sqlite` được giữ nguyên, không tự import vào PostgreSQL.
 
 ## Model tìm kiếm local
 
@@ -90,7 +90,7 @@ frontend/src/
   main.jsx               React entry point
 frontend/e2e/            Playwright desktop/mobile tests
 tests/         Python API/integration/concurrency/backup tests
-scripts/       Tải model, server E2E và database riêng cho kiểm thử
+scripts/       Thu thập/nhập ADCBook, tải model và server/database E2E
 docs/          Thiết kế, nguồn đối chiếu và test evidence
 instance/      SQLite cũ, Git ignored; runtime mới dùng PostgreSQL volume
 run.py         Entry point backend + production React bundle
@@ -163,3 +163,18 @@ Image search dùng CLIP ViT-B/32, xếp hạng cosine similarity; kết quả t�
 Chưa chứng nhận uptime, tải production, TLS, mã hoá ổ đĩa, mail/provider thật hoặc mức độ liên quan AI. Secret mặc định random theo lần boot nên session sẽ hết hạn khi restart; đặt biến môi trường `SECRET_KEY` ổn định nếu muốn giữ session. `COOKIE_SECURE=1` dành cho HTTPS. Không public bản demo với seed credentials hoặc recovery demo. `DEMO_MODE=0` tắt các demo endpoint và seed demo, nhưng chưa thay thế các tích hợp production.
 
 Tham khảo kỹ thuật: [Flask testing](https://flask.palletsprojects.com/en/stable/testing/), [Vite](https://vite.dev/guide/), [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder), [Faster Whisper](https://github.com/SYSTRAN/faster-whisper), [CLIP image search](https://sbert.net/examples/sentence_transformer/applications/image-search/README.html).
+
+## Catalogue ADCBook
+
+Snapshot 200 sản phẩm nằm ở `data/adcbook.json`; ảnh được lưu tại `frontend/public/assets/adcbook/` để app và CLIP chạy local. ID và đường dẫn nguồn được lưu trong thuộc tính sản phẩm. Dữ liệu được lấy ngày 05/11/2026, chia theo sáu danh mục; giá/tồn chỉ là snapshot, không đồng bộ thời gian thực. Sản phẩm demo cũ được ẩn để giữ tham chiếu lịch sử.
+
+Cập nhật snapshot (cần mạng, không tự động đồng bộ tồn kho đã nhập):
+
+```powershell
+.\.venv\Scripts\python scripts/fetch_adcbook.py
+docker compose build app
+docker compose run --rm --no-deps app python -m scripts.import_adcbook
+docker compose up -d --wait
+```
+
+Việc nhập chỉ thêm sản phẩm mới theo ID nguồn, không ghi đè sản phẩm đã nhập hoặc tồn kho đã quản lý. Sao lưu PostgreSQL trước khi cập nhật; dữ liệu, giá và ảnh lấy từ ADCBook cần được kiểm tra quyền sử dụng trước khi công khai.

@@ -25,7 +25,7 @@ def create_app(config=None):
         SESSION_COOKIE_SECURE=os.environ.get('COOKIE_SECURE')=='1',
     )
     app.config.update(config or {})
-    init_db(app.config['DATABASE'],app.config['DEMO_MODE'])
+    init_db(app.config['DATABASE'],app.config['DEMO_MODE'], app.testing or app.config.get('CATALOGUE_FIXTURES', False))
     register_http(app)
     for controller in (
         account_controller, product_controller, search_controller,
